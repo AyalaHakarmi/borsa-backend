@@ -1,10 +1,9 @@
 package com.burse.bursebackend.entities;
 
-import com.burse.bursebackend.entities.offer.ActiveTradeOffer;
+import com.burse.bursebackend.entities.offer.ActiveOffer;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -29,7 +28,7 @@ public class Trader {
     private Map<String, Integer> holdings = new HashMap<>();
 
     @OneToMany(mappedBy = "trader", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ActiveTradeOffer> activeOffers = new ArrayList<>();
+    private List<ActiveOffer> activeOffers = new ArrayList<>();
 
     @OneToMany(mappedBy = "buyer", cascade = CascadeType.ALL)
     private List<Trade> asBuyer = new ArrayList<>();

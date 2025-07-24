@@ -10,14 +10,12 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
+@Table(name = "active_offer")
 @NoArgsConstructor
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "offer_type")
-@Table(name = "active_offers")
 @Getter
 @Setter
-public abstract class ActiveTradeOffer extends TradeOffer {
-    public ActiveTradeOffer(Trader trader, Stock stock, BigDecimal price, int amount) {
+public abstract class ActiveOffer extends Offer {
+    public ActiveOffer(Trader trader, Stock stock, BigDecimal price, int amount) {
         super(trader, stock, price, amount);
     }
 

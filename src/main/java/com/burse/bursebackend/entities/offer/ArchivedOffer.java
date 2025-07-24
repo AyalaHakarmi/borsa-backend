@@ -4,25 +4,33 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.time.LocalDateTime;
 
+
 @Entity
-@Table(name = "archived_trade_offer")
+@Table(name = "archived_offer")
 @NoArgsConstructor
 @Getter
 @Setter
-public class ArchivedTradeOffer extends TradeOffer {
+public class ArchivedOffer extends Offer {
 
     @Enumerated(EnumType.STRING)
     private ArchiveReason reason;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OfferType offerType;
+
+
     private LocalDateTime archivedAt;
 
-    public ArchivedTradeOffer(TradeOffer originalOffer, ArchiveReason reason) {
+    public ArchivedOffer(Offer originalOffer, ArchiveReason reason) {
         super(originalOffer.getTrader(), originalOffer.getStock(), originalOffer.getPrice(), originalOffer.getAmount());
         this.reason = reason;
+        this.offerType= (
+                originalOffer instanceof BuyOffer ? OfferType.BUY : OfferType.SELL
+        );
     }
 
 

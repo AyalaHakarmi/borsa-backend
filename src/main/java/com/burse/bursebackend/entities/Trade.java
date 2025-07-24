@@ -1,10 +1,9 @@
 package com.burse.bursebackend.entities;
 
-import com.burse.bursebackend.entities.offer.TradeOffer;
+import com.burse.bursebackend.entities.offer.Offer;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,6 +29,14 @@ public class Trade {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stock_id")
     private Stock stock;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "buy_offer_id")
+    private Offer buyOffer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sell_offer_id")
+    private Offer sellOffer;
 
     private BigDecimal price;
 

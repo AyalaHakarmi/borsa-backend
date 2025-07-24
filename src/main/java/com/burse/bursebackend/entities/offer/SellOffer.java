@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Getter
 @Setter
-public class SellOffer extends ActiveTradeOffer {
+public class SellOffer extends ActiveOffer {
 
     public SellOffer(Trader trader, Stock stock, BigDecimal price, int amount) {
         super(trader, stock, price, amount);

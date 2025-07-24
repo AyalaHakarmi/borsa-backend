@@ -6,19 +6,20 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@MappedSuperclass
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor
 @Getter
 @Setter
-public abstract class TradeOffer {
+public abstract class Offer {
 
     @Id
+    @Column(unique = true)
     private String id;
 
     private BigDecimal price;
@@ -46,12 +47,12 @@ public abstract class TradeOffer {
         if (createdAt == null) {
             this.createdAt = LocalDateTime.now();
         }
-        if (this instanceof ArchivedTradeOffer archived) {
+        if (this instanceof ArchivedOffer archived) {
             archived.setArchivedAt(LocalDateTime.now());
         }
     }
 
-    public TradeOffer(Trader trader, Stock stock, BigDecimal price, int amount) {
+    public Offer(Trader trader, Stock stock, BigDecimal price, int amount) {
         this.trader = trader;
         this.stock = stock;
         this.price = price;
