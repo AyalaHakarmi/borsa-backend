@@ -14,9 +14,21 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Getter
 @Setter
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class ActiveOffer extends Offer {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trader_id")
+    private Trader trader;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stock_id")
+    private Stock stock;
+
     public ActiveOffer(Trader trader, Stock stock, BigDecimal price, int amount) {
-        super(trader, stock, price, amount);
+        super(price, amount);
+        this.trader = trader;
+        this.stock = stock;
     }
 
 

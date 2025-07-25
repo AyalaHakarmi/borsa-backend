@@ -1,7 +1,9 @@
-package com.burse.bursebackend.services.pricing;
+package com.burse.bursebackend.services.impl.stocks;
 
 import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.repositories.StockRepository;
+import com.burse.bursebackend.services.stocks.IStockPriceUpdater;
+import com.burse.bursebackend.services.stocks.IStockPriceUpdateStrategy;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,17 +16,17 @@ import java.util.Map;
 import java.util.Set;
 
 @Service
-public class StockPriceUpdater {
+public class StockPriceUpdater implements IStockPriceUpdater {
 
     private static final long UPDATE_INTERVAL_MS = 60_000L;
 
     private final StockRepository stockRepository;
-    private final Map<String, StockPriceUpdateStrategy> strategyMap;
+    private final Map<String, IStockPriceUpdateStrategy> strategyMap;
 
-    private volatile StockPriceUpdateStrategy currentStrategy;
+    private volatile IStockPriceUpdateStrategy currentStrategy;
 
     public StockPriceUpdater(StockRepository stockRepository,
-                             Map<String, StockPriceUpdateStrategy> strategyMap,
+                             Map<String, IStockPriceUpdateStrategy> strategyMap,
                              @Value("${burse.strategy.default:comprehensiveStrategy}") String defaultStrategyName) {
         this.stockRepository = stockRepository;
         this.strategyMap = strategyMap;
@@ -34,6 +36,7 @@ public class StockPriceUpdater {
         );
     }
 
+    @Override
     @Scheduled(fixedRate = UPDATE_INTERVAL_MS)
     @Transactional
     public void updateAllPrices() {
@@ -64,6 +67,7 @@ public class StockPriceUpdater {
         System.out.printf("Stock prices updated using strategy: %s%n", getCurrentStrategyName());
     }
 
+    @Override
     public void setStrategyByName(String name) {
         if (strategyMap.containsKey(name)) {
             this.currentStrategy = strategyMap.get(name);
@@ -73,6 +77,7 @@ public class StockPriceUpdater {
         }
     }
 
+    @Override
     public String getCurrentStrategyName() {
         return strategyMap.entrySet().stream()
                 .filter(entry -> entry.getValue() == currentStrategy)
@@ -81,6 +86,7 @@ public class StockPriceUpdater {
                 .orElse("unknown");
     }
 
+    @Override
     public Set<String> getAvailableStrategyNames() {
         return strategyMap.keySet();
     }

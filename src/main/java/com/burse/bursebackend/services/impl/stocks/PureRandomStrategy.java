@@ -1,6 +1,7 @@
-package com.burse.bursebackend.services.pricing;
+package com.burse.bursebackend.services.impl.stocks;
 
 import com.burse.bursebackend.entities.Stock;
+import com.burse.bursebackend.services.stocks.IStockPriceUpdateStrategy;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -8,7 +9,7 @@ import java.math.RoundingMode;
 import java.util.Random;
 
 @Component("pureRandomStrategy")
-public class PureRandomStrategy implements StockPriceUpdateStrategy {
+public class PureRandomStrategy implements IStockPriceUpdateStrategy {
 
     private final Random random = new Random();
 

@@ -1,9 +1,9 @@
-package com.burse.bursebackend.services.pricing;
+package com.burse.bursebackend.services.stocks;
 
 import com.burse.bursebackend.entities.Stock;
 
 import java.math.BigDecimal;
 
-public interface StockPriceUpdateStrategy {
+public interface IStockPriceUpdateStrategy {
     BigDecimal calculateNewPrice(Stock stock);
 }

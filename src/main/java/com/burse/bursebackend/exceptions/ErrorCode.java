@@ -1,0 +1,14 @@
+package com.burse.bursebackend.exceptions;
+
+public enum ErrorCode {
+    OPPOSITE_OFFER_EXISTS,
+    LOCK_FAILED,
+    INVALID_OFFER,
+    TRADER_NOT_FOUND,
+    STOCK_NOT_FOUND,
+    QUANTITY_TOO_HIGH,
+    INSUFFICIENT_FUNDS,
+    TRY_ANOTHER_MATCH,
+    OFFER_LOCKED, OFFER_NOT_FOUND, UNKNOWN
+}
+

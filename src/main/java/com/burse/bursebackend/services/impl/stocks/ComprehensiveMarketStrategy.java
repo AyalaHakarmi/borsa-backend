@@ -1,9 +1,10 @@
-package com.burse.bursebackend.services.pricing;
+package com.burse.bursebackend.services.impl.stocks;
 
 import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.entities.offer.*;
 import com.burse.bursebackend.repositories.offer.ArchivedOfferRepository;
 import com.burse.bursebackend.repositories.offer.ActiveOfferRepository;
+import com.burse.bursebackend.services.stocks.IStockPriceUpdateStrategy;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Random;
 
 @Component("comprehensiveStrategy")
-public class ComprehensiveMarketStrategy implements StockPriceUpdateStrategy {
+public class ComprehensiveMarketStrategy implements IStockPriceUpdateStrategy {
 
     private final ArchivedOfferRepository archivedRepo;
     private final ActiveOfferRepository activeRepo;

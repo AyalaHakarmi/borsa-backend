@@ -1,6 +1,6 @@
 package com.burse.bursebackend.controllers;
 
-import com.burse.bursebackend.services.pricing.StockPriceUpdater;
+import com.burse.bursebackend.services.impl.stocks.StockPriceUpdater;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

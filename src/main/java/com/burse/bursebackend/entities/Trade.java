@@ -1,8 +1,10 @@
 package com.burse.bursebackend.entities;
 
+import com.burse.bursebackend.entities.offer.ActiveOffer;
 import com.burse.bursebackend.entities.offer.Offer;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -13,6 +15,7 @@ import java.util.UUID;
 @Table(name = "trade")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Trade {
 
     @Id
@@ -30,17 +33,11 @@ public class Trade {
     @JoinColumn(name = "stock_id")
     private Stock stock;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "buy_offer_id")
-    private Offer buyOffer;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sell_offer_id")
-    private Offer sellOffer;
-
-    private BigDecimal price;
+    private BigDecimal pricePerUnit;
 
     private int amount;
+
+    private BigDecimal totalPrice;
 
     private LocalDateTime timestamp;
 
@@ -52,6 +49,15 @@ public class Trade {
         if (timestamp == null) {
             this.timestamp = LocalDateTime.now();
         }
+    }
+
+    public Trade(ActiveOffer buyOffer, ActiveOffer sellOffer, BigDecimal pricePerUnit, int tradeQty) {
+        this.buyer = buyOffer.getTrader();
+        this.seller = sellOffer.getTrader();
+        this.stock = buyOffer.getStock();
+        this.pricePerUnit = pricePerUnit;
+        this.amount = tradeQty;
+        this.totalPrice = pricePerUnit.multiply(BigDecimal.valueOf(tradeQty));
     }
 }
 

@@ -11,8 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Entity
-@Inheritance(strategy = InheritanceType.JOINED)
+@MappedSuperclass
 @NoArgsConstructor
 @Getter
 @Setter
@@ -25,14 +24,6 @@ public abstract class Offer {
     private BigDecimal price;
 
     private int amount;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trader_id")
-    private Trader trader;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stock_id")
-    private Stock stock;
 
     private LocalDateTime createdAt;
 
@@ -52,9 +43,7 @@ public abstract class Offer {
         }
     }
 
-    public Offer(Trader trader, Stock stock, BigDecimal price, int amount) {
-        this.trader = trader;
-        this.stock = stock;
+    public Offer(BigDecimal price, int amount) {
         this.price = price;
         this.amount = amount;
     }

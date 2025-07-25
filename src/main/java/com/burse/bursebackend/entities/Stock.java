@@ -39,6 +39,27 @@ public class Stock {
             id = java.util.UUID.randomUUID().toString();
         }
     }
+
+    public void addOffer(ActiveOffer newOffer) {
+        if (newOffer != null && !activeOffers.contains(newOffer)) {
+            activeOffers.add(newOffer);
+            newOffer.setStock(this);
+        }
+    }
+
+    public void addTrade(Trade trade) {
+        if (trade != null && !trades.contains(trade)) {
+            trades.add(trade);
+            trade.setStock(this);
+        }
+    }
+
+    public void removeOffer(ActiveOffer offer) {
+        if (offer != null && activeOffers.contains(offer)) {
+            activeOffers.remove(offer);
+            offer.setStock(null);
+        }
+    }
 }
 
 

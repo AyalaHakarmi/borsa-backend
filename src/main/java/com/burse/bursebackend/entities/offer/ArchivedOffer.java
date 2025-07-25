@@ -1,5 +1,7 @@
 package com.burse.bursebackend.entities.offer;
 
+import com.burse.bursebackend.entities.Stock;
+import com.burse.bursebackend.entities.Trader;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,12 +27,23 @@ public class ArchivedOffer extends Offer {
 
     private LocalDateTime archivedAt;
 
-    public ArchivedOffer(Offer originalOffer, ArchiveReason reason) {
-        super(originalOffer.getTrader(), originalOffer.getStock(), originalOffer.getPrice(), originalOffer.getAmount());
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trader_id")
+    private Trader trader;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stock_id")
+    private Stock stock;
+
+
+    public ArchivedOffer(ActiveOffer originalOffer, ArchiveReason reason) {
+        super(originalOffer.getPrice(), originalOffer.getAmount());
         this.reason = reason;
         this.offerType= (
                 originalOffer instanceof BuyOffer ? OfferType.BUY : OfferType.SELL
         );
+        this.trader = originalOffer.getTrader();
+        this.stock = originalOffer.getStock();
     }
 
 

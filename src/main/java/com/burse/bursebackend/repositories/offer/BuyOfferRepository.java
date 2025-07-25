@@ -1,6 +1,6 @@
 package com.burse.bursebackend.repositories.offer;
 
-import com.burse.bursebackend.entities.offer.SellOffer;
+import com.burse.bursebackend.entities.offer.BuyOffer;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,20 +12,19 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SellOfferRepository extends JpaRepository<SellOffer, String> {
-
+public interface BuyOfferRepository extends JpaRepository<BuyOffer, String> {
     @Query("""
-    SELECT s FROM SellOffer s
-    WHERE s.stock.id = :stockId
-      AND s.price <= :maxPrice
-    ORDER BY s.price ASC, s.createdAt ASC
+    SELECT b FROM BuyOffer b
+    WHERE b.stock.id = :stockId
+      AND b.price >= :minPrice
+    ORDER BY b.price DESC, b.createdAt ASC
     """)
-    Optional<SellOffer> findBestMatchingSellOffer(
+    Optional<BuyOffer> findBestMatchingBuyOffer(
             @Param("stockId") String stockId,
-            @Param("maxPrice") BigDecimal maxPrice);
+            @Param("minPrice") BigDecimal minPrice);
+
 
     boolean existsByTraderIdAndStockId(String traderId, String stockId);
-
 
 
 }

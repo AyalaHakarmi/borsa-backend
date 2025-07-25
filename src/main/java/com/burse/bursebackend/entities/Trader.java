@@ -51,5 +51,33 @@ public class Trader {
             id = UUID.randomUUID().toString();
         }
     }
+
+    public void addOffer(ActiveOffer newOffer) {
+        if (newOffer != null) {
+            newOffer.setTrader(this);
+            activeOffers.add(newOffer);
+        }
+    }
+
+    public void addAsBuyTrade(Trade trade) {
+        if (trade != null) {
+            trade.setBuyer(this);
+            asBuyer.add(trade);
+        }
+    }
+
+    public void addAsSellTrade(Trade trade) {
+        if (trade != null) {
+            trade.setSeller(this);
+            asSeller.add(trade);
+        }
+    }
+
+    public void removeOffer(ActiveOffer offer) {
+        if (offer != null) {
+            activeOffers.remove(offer);
+            offer.setTrader(null);
+        }
+    }
 }
 

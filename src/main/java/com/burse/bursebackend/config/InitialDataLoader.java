@@ -55,6 +55,8 @@ public class InitialDataLoader {
                     stock.getAmount()
             );
             sellOfferRepository.save(offer);
+            burse.addOffer(offer);
+            stock.addOffer(offer);
         }
 
     }
