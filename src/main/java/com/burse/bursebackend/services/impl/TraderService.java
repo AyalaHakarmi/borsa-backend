@@ -4,15 +4,20 @@ import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.entities.Trader;
 import com.burse.bursebackend.entities.offer.BuyOffer;
 import com.burse.bursebackend.entities.offer.SellOffer;
+import com.burse.bursebackend.repositories.TraderRepository;
 import com.burse.bursebackend.services.ITraderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class TraderService implements ITraderService {
+
+    private final TraderRepository traderRepository;
 
 
     @Override
@@ -70,6 +75,23 @@ public class TraderService implements ITraderService {
             seller.getHoldings().put(stock.getId(), sellerStockAmount - tradeQty);
         }
 
+    }
+
+    @Override
+    public List<String> getAllTraderNames() {
+        return traderRepository.findAll()
+                .stream()
+                .map(Trader::getName)
+                .toList();
+
+    }
+
+    @Override
+    public Optional<Trader> findById(String traderId) {
+        if (traderId == null || traderId.isBlank()) {
+            return Optional.empty();
+        }
+        return traderRepository.findById(traderId);
     }
 
 }

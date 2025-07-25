@@ -2,11 +2,15 @@ package com.burse.bursebackend.services.impl;
 
 import com.burse.bursebackend.dtos.offer.BaseOfferDTO;
 import com.burse.bursebackend.dtos.offer.BuyOfferDTO;
+import com.burse.bursebackend.dtos.offer.OfferResponseDTO;
 import com.burse.bursebackend.dtos.offer.SellOfferDTO;
+import com.burse.bursebackend.entities.Stock;
+import com.burse.bursebackend.entities.Trader;
 import com.burse.bursebackend.entities.offer.*;
+import com.burse.bursebackend.enums.ArchiveReason;
+import com.burse.bursebackend.enums.OfferType;
 import com.burse.bursebackend.exceptions.BurseException;
-import com.burse.bursebackend.mappers.OfferMapper;
-import com.burse.bursebackend.exceptions.ErrorCode;
+import com.burse.bursebackend.enums.ErrorCode;
 import com.burse.bursebackend.repositories.offer.ActiveOfferRepository;
 import com.burse.bursebackend.repositories.offer.ArchivedOfferRepository;
 import com.burse.bursebackend.repositories.offer.BuyOfferRepository;
@@ -15,11 +19,14 @@ import com.burse.bursebackend.services.IOfferService;
 import com.burse.bursebackend.locks.IRedisLockService;
 import com.burse.bursebackend.services.ITradeService;
 import com.burse.bursebackend.locks.LockKeyBuilder;
-import com.burse.bursebackend.locks.LockKeyType;
+import com.burse.bursebackend.enums.LockKeyType;
+import com.burse.bursebackend.services.ITraderService;
+import com.burse.bursebackend.services.stocks.IStockService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -32,7 +39,8 @@ public class OfferService implements IOfferService {
     private final SellOfferRepository sellOfferRepository;
     private final BuyOfferRepository buyOfferRepository;
     private final ArchivedOfferRepository archivedOfferRepository;
-    private final OfferMapper offerMapper;
+    private final ITraderService traderService;
+    private final IStockService stockService;
 
     @Override
     public void placeOffer(BaseOfferDTO offerDTO) {
@@ -57,7 +65,7 @@ public class OfferService implements IOfferService {
                         "You already have an offer of " + oppositeType.name() + " type for this stock."
                 );
             }
-            newOffer = offerMapper.fromDto(offerDTO);
+            newOffer = fromDto(offerDTO);
             activeOfferRepository.save(newOffer);
             redisLockService.lock(lockOppositeKey);
 
@@ -140,7 +148,6 @@ public class OfferService implements IOfferService {
         return Optional.empty();
     }
 
-
     public void updateOrArchiveOffer(ActiveOffer offer, int quantityToReduce, String offerLockKey) {
         int remaining = offer.getAmount()-quantityToReduce;
         offer.setAmount(remaining);
@@ -219,6 +226,40 @@ public class OfferService implements IOfferService {
             redisLockService.unlock(lockKey);
         }
     }
+
+    public List<OfferResponseDTO> getActiveOffersForStock(String stockId) {
+        List<ActiveOffer> activeOffers = activeOfferRepository.findByStockId(stockId);
+        return activeOffers.stream()
+                .map(ActiveOffer::toResponseDTO)
+                .toList();
+    }
+
+    @Override
+    public List<OfferResponseDTO> getActiveOffersForTrader(String traderId) {
+        List<ActiveOffer> activeOffers = activeOfferRepository.findByTraderId(traderId);
+        return activeOffers.stream()
+                .map(ActiveOffer::toResponseDTO)
+                .toList();
+    }
+
+    public ActiveOffer fromDto(BaseOfferDTO dto) {
+        Trader trader = traderService.findById(dto.getTraderId())
+                .orElseThrow(() -> new BurseException(ErrorCode.TRADER_NOT_FOUND, "Trader not found"));
+
+        Stock stock = stockService.findById(dto.getStockId())
+                .orElseThrow(() -> new BurseException(ErrorCode.STOCK_NOT_FOUND, "Stock not found"));
+
+        if (dto instanceof BuyOfferDTO) {
+            return new BuyOffer(trader, stock, dto.getPrice(), dto.getAmount());
+        }
+
+        if (dto instanceof SellOfferDTO) {
+            return new SellOffer(trader, stock, dto.getPrice(), dto.getAmount());
+        }
+
+        throw new BurseException(ErrorCode.INVALID_OFFER, "Unknown offer type");
+    }
+
 
 }
 

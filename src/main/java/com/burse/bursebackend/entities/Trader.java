@@ -1,5 +1,6 @@
 package com.burse.bursebackend.entities;
 
+import com.burse.bursebackend.dtos.TraderDTO;
 import com.burse.bursebackend.entities.offer.ActiveOffer;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -78,6 +79,16 @@ public class Trader {
             activeOffers.remove(offer);
             offer.setTrader(null);
         }
+    }
+
+    public TraderDTO toDTO() {
+        TraderDTO dto = new TraderDTO();
+        dto.setId(this.getId());
+        dto.setName(this.getName());
+        dto.setMoney(this.getMoney());
+        dto.setHoldings(this.getHoldings());
+        return dto;
+
     }
 }
 

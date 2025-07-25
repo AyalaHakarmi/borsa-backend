@@ -1,23 +1,26 @@
 package com.burse.bursebackend.services.impl;
 
+import com.burse.bursebackend.dtos.TradeDTO;
 import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.entities.Trade;
+import com.burse.bursebackend.entities.Trader;
 import com.burse.bursebackend.entities.offer.BuyOffer;
 import com.burse.bursebackend.entities.offer.SellOffer;
 import com.burse.bursebackend.exceptions.BurseException;
-import com.burse.bursebackend.exceptions.ErrorCode;
+import com.burse.bursebackend.enums.ErrorCode;
 import com.burse.bursebackend.repositories.TradeRepository;
 import com.burse.bursebackend.locks.IRedisLockService;
 import com.burse.bursebackend.services.ITradeService;
 import com.burse.bursebackend.services.ITraderService;
 import com.burse.bursebackend.locks.LockKeyBuilder;
-import com.burse.bursebackend.locks.LockKeyType;
+import com.burse.bursebackend.enums.LockKeyType;
 import com.burse.bursebackend.services.stocks.IStockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -70,6 +73,17 @@ public class TradeService implements ITradeService {
 
     }
 
+    public List<TradeDTO> getRecentTradesForTrader(String traderId) {
+        Trader trader = traderService.findById(traderId)
+                .orElseThrow(() -> new BurseException(ErrorCode.TRADER_NOT_FOUND, "Trader not found"));
+
+        List<Trade> trades = tradeRepository.findTop8ByBuyerOrSellerOrderByTimestampDesc(trader, trader);
+
+        return trades.stream()
+                .map(Trade::toDTO)
+                .toList();
+    }
+
     private void recordTrade(BuyOffer buyOffer, SellOffer sellOffer, BigDecimal tradePricePerUnit, int tradeQty) {
         Trade trade = new Trade(buyOffer, sellOffer, tradePricePerUnit, tradeQty);
         tradeRepository.save(trade);
@@ -94,5 +108,13 @@ public class TradeService implements ITradeService {
 
         );
     }
+
+    public List<TradeDTO> getRecentTradesForStock(Stock stock) {
+        List<Trade> recentTrades = tradeRepository.findTop10ByStockOrderByTimestampDesc(stock);
+        return recentTrades.stream()
+                .map(Trade::toDTO)
+                .toList();
+    }
+
 
 }

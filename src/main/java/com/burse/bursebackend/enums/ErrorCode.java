@@ -1,4 +1,4 @@
-package com.burse.bursebackend.exceptions;
+package com.burse.bursebackend.enums;
 
 public enum ErrorCode {
     OPPOSITE_OFFER_EXISTS,

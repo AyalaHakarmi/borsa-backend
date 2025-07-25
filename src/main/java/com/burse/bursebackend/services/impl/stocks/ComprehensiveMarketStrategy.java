@@ -2,6 +2,7 @@ package com.burse.bursebackend.services.impl.stocks;
 
 import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.entities.offer.*;
+import com.burse.bursebackend.enums.OfferType;
 import com.burse.bursebackend.repositories.offer.ArchivedOfferRepository;
 import com.burse.bursebackend.repositories.offer.ActiveOfferRepository;
 import com.burse.bursebackend.services.stocks.IStockPriceUpdateStrategy;

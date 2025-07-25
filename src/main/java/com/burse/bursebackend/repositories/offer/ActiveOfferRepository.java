@@ -13,4 +13,7 @@ public interface ActiveOfferRepository extends JpaRepository<ActiveOffer, String
 
     @Query("SELECT o FROM ActiveOffer o WHERE o.stock.id = :stockId")
     List<ActiveOffer> findByStockId(@Param("stockId") String stockId);
+
+    @Query("SELECT o FROM ActiveOffer o WHERE o.trader.id = :traderId")
+    List<ActiveOffer> findByTraderId(@Param("traderId") String traderId);
 }

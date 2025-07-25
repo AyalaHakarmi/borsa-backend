@@ -1,6 +1,7 @@
 package com.burse.bursebackend.locks;
 
-import com.burse.bursebackend.entities.offer.OfferType;
+import com.burse.bursebackend.enums.OfferType;
+import com.burse.bursebackend.enums.LockKeyType;
 
 public class LockKeyBuilder {
 

@@ -1,4 +1,4 @@
-package com.burse.bursebackend.entities.offer;
+package com.burse.bursebackend.enums;
 
 public enum OfferType {
     BUY,

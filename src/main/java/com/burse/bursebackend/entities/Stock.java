@@ -1,5 +1,7 @@
 package com.burse.bursebackend.entities;
 
+import com.burse.bursebackend.dtos.StockDetailDTO;
+import com.burse.bursebackend.dtos.stock.StockSimpleDTO;
 import com.burse.bursebackend.entities.offer.ActiveOffer;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -40,6 +42,7 @@ public class Stock {
         }
     }
 
+
     public void addOffer(ActiveOffer newOffer) {
         if (newOffer != null && !activeOffers.contains(newOffer)) {
             activeOffers.add(newOffer);
@@ -59,6 +62,24 @@ public class Stock {
             activeOffers.remove(offer);
             offer.setStock(null);
         }
+    }
+
+    public StockSimpleDTO toStockSimpleDTO() {
+        StockSimpleDTO dto = new StockSimpleDTO();
+        dto.setId(this.getId());
+        dto.setName(this.getName());
+        dto.setCurrentPrice(this.getCurrentPrice());
+        dto.setAmount(this.getAmount());
+        return dto;
+    }
+
+    public StockDetailDTO toStockDetailDTO() {
+        StockDetailDTO dto = new StockDetailDTO();
+        dto.setId(this.getId());
+        dto.setName(this.getName());
+        dto.setCurrentPrice(this.getCurrentPrice());
+        dto.setAmount(this.getAmount());
+        return dto;
     }
 }
 
