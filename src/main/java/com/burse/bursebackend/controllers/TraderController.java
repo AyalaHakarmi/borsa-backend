@@ -1,9 +1,9 @@
 package com.burse.bursebackend.controllers;
 
 import com.burse.bursebackend.dtos.TradeDTO;
-import com.burse.bursebackend.services.ITradeService;
+import com.burse.bursebackend.dtos.TraderDTO;
 import com.burse.bursebackend.services.ITraderService;
-import com.burse.bursebackend.services.impl.DataAggregatorService;
+import com.burse.bursebackend.services.impl.BurseViewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -19,25 +19,27 @@ import java.util.List;
 public class TraderController {
 
     private final ITraderService traderService;
-    private final DataAggregatorService dataAggregatorService;
-    private final ITradeService tradeService;
+    private final BurseViewService dataAggregatorService;
 
     @GetMapping("/names")
     @Operation(summary = "Get all trader names", description = "Returns a list of all trader names.")
     public ResponseEntity<List<String>> getAllTraderNames() {
-        return ResponseEntity.ok(traderService.getAllTraderNames());
+        List<String> traderNames = traderService.getAllTraderNames();
+        return ResponseEntity.ok(traderNames);
     }
 
     @GetMapping("/{traderId}")
-    @Operation(summary = "Get trader info with active offers", description = "Returns trader data and all their open offers.")
-    public ResponseEntity<?> getTraderDetails(@PathVariable String traderId) {
-        return ResponseEntity.ok(dataAggregatorService.getTraderDetails(traderId));
+    @Operation(summary = "Get trader info with active offers", description = "Returns trader data and all his open offers.")
+    public ResponseEntity<TraderDTO> getTraderDetails(@PathVariable String traderId) {
+        TraderDTO traderDetails = dataAggregatorService.getTraderDetails(traderId);
+        return ResponseEntity.ok(traderDetails);
     }
 
     @GetMapping("/{traderId}/trades")
     @Operation(summary = "Get recent trades for trader", description = "Returns up to 8 recent trades involving the trader.")
     public ResponseEntity<List<TradeDTO>> getTraderTrades(@PathVariable String traderId) {
-        return ResponseEntity.ok(tradeService.getRecentTradesForTrader(traderId));
+        List<TradeDTO> trades = dataAggregatorService.get8RecentTradesForTrader(traderId);
+        return ResponseEntity.ok(trades);
     }
 }
 

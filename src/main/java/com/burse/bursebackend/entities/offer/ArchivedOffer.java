@@ -2,8 +2,8 @@ package com.burse.bursebackend.entities.offer;
 
 import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.entities.Trader;
-import com.burse.bursebackend.enums.ArchiveReason;
-import com.burse.bursebackend.enums.OfferType;
+import com.burse.bursebackend.types.ArchiveReason;
+import com.burse.bursebackend.types.OfferType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -10,15 +10,18 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ITraderService {
-    boolean hasEnoughMoney(Trader trader, BigDecimal tradeTotalPrice);
 
-    boolean hasEnoughStock(Trader trader, Stock stock, int tradeQty);
+    void verifyTraderStockAvailability(SellOffer sellOffer, int numOfStocksTraded, String lockTraderMoney, String lockTraderStock);
+
+    void verifyTraderMoneyAvailablity(BuyOffer buyOffer, BigDecimal tradeTotalPrice, String lockTraderMoney);
 
     void updateTradersMoney(BuyOffer buyOffer, SellOffer sellOffer, BigDecimal tradeTotalPrice);
 
-    void updateTradersStock(BuyOffer buyOffer, SellOffer sellOffer, int tradeQty);
+    void updateTradersStock(BuyOffer buyOffer, SellOffer sellOffer, int numOfStocksTraded);
 
     List<String> getAllTraderNames();
 
     Optional<Trader> findById(String traderId);
+
+    void exchangeMoneyAndStock(BuyOffer buyOffer, SellOffer sellOffer, Stock stock, BigDecimal tradeTotalPrice, int numOfStocksTraded);
 }

@@ -1,45 +1,41 @@
 package com.burse.bursebackend.controllers;
 
-import com.burse.bursebackend.services.impl.stocks.StockPriceUpdater;
+import com.burse.bursebackend.pricing.IStockPriceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Set;
+import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/strategy")
 @Tag(name = "Strategy Management", description = "Switch and query price update strategies")
 public class StrategyController {
 
-    private final StockPriceUpdater stockPriceUpdater;
+    private final IStockPriceService stockPriceUpdater;
 
-    public StrategyController(StockPriceUpdater stockPriceUpdater) {
-        this.stockPriceUpdater = stockPriceUpdater;
-    }
-
-    @GetMapping("/current")
+    @GetMapping
     @Operation(summary = "Get current strategy", description = "Returns the currently active stock price update strategy")
-    public String getCurrentStrategy() {
-        return stockPriceUpdater.getCurrentStrategyName();
+    public ResponseEntity<String> getCurrentStrategy() {
+        String currentStrategy = stockPriceUpdater.getCurrentStrategy();
+        return ResponseEntity.ok(currentStrategy);
     }
 
-    @GetMapping("/available")
+    @GetMapping("/available-strategies")
     @Operation(summary = "List all strategies", description = "Returns all available strategy names that can be activated")
-    public Set<String> getAvailableStrategies() {
-        return stockPriceUpdater.getAvailableStrategyNames();
+    public ResponseEntity<Map<String,String>> getAvailableStrategies() {
+        Map<String,String> availableStrategies = stockPriceUpdater.getAvailableStrategies();
+        return ResponseEntity.ok(availableStrategies);
     }
 
-    @PostMapping("/switch")
+    @PutMapping("/switch")
     @Operation(summary = "Switch strategy", description = "Switches the current strategy to the given name (e.g. pureRandomStrategy)")
-    public ResponseEntity<String> switchStrategy(@RequestParam String name) {
-        try {
-            stockPriceUpdater.setStrategyByName(name);
-            return ResponseEntity.ok("Switched to strategy: " + name);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Unknown strategy: " + name);
-        }
+    public ResponseEntity<String> switchStrategy(@RequestParam String strategyName) {
+        String result = stockPriceUpdater.switchStrategy(strategyName);
+        return ResponseEntity.ok(result);
     }
 }
 

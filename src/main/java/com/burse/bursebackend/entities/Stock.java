@@ -32,9 +32,6 @@ public class Stock {
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Trade> trades = new ArrayList<>();
 
-    @Version
-    private int version;
-
     @PrePersist
     public void assignIdIfMissing() {
         if (id == null || id.isBlank()) {
@@ -64,23 +61,6 @@ public class Stock {
         }
     }
 
-    public StockSimpleDTO toStockSimpleDTO() {
-        StockSimpleDTO dto = new StockSimpleDTO();
-        dto.setId(this.getId());
-        dto.setName(this.getName());
-        dto.setCurrentPrice(this.getCurrentPrice());
-        dto.setAmount(this.getAmount());
-        return dto;
-    }
-
-    public StockDetailDTO toStockDetailDTO() {
-        StockDetailDTO dto = new StockDetailDTO();
-        dto.setId(this.getId());
-        dto.setName(this.getName());
-        dto.setCurrentPrice(this.getCurrentPrice());
-        dto.setAmount(this.getAmount());
-        return dto;
-    }
 }
 
 

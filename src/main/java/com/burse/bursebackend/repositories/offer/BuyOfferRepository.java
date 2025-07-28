@@ -19,9 +19,10 @@ public interface BuyOfferRepository extends JpaRepository<BuyOffer, String> {
       AND b.price >= :minPrice
     ORDER BY b.price DESC, b.createdAt ASC
     """)
-    Optional<BuyOffer> findBestMatchingBuyOffer(
+    List<BuyOffer> findBestMatchingBuyOffer(
             @Param("stockId") String stockId,
-            @Param("minPrice") BigDecimal minPrice);
+            @Param("minPrice") BigDecimal minPrice,
+            Pageable pageable);
 
 
     boolean existsByTraderIdAndStockId(String traderId, String stockId);

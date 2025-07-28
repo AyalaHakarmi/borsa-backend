@@ -33,10 +33,12 @@ public class Trade {
     @JoinColumn(name = "stock_id")
     private Stock stock;
 
+    @Column(nullable = false)
     private BigDecimal pricePerUnit;
 
     private int amount;
 
+    @Column(nullable = false)
     private BigDecimal totalPrice;
 
     private LocalDateTime timestamp;
@@ -51,34 +53,15 @@ public class Trade {
         }
     }
 
-    public Trade(ActiveOffer buyOffer, ActiveOffer sellOffer, BigDecimal pricePerUnit, int tradeQty) {
+    public Trade(ActiveOffer buyOffer, ActiveOffer sellOffer, BigDecimal pricePerUnit, int numOfStocksTraded) {
         this.buyer = buyOffer.getTrader();
         this.seller = sellOffer.getTrader();
         this.stock = buyOffer.getStock();
         this.pricePerUnit = pricePerUnit;
-        this.amount = tradeQty;
-        this.totalPrice = pricePerUnit.multiply(BigDecimal.valueOf(tradeQty));
+        this.amount = numOfStocksTraded;
+        this.totalPrice = pricePerUnit.multiply(BigDecimal.valueOf(numOfStocksTraded));
     }
 
-    public TradeDTO toDTO() {
-        TradeDTO dto = new TradeDTO();
 
-        dto.setId(this.getId());
-        dto.setPrice(this.getPricePerUnit());
-        dto.setTotalPrice(this.getTotalPrice());
-        dto.setAmount(this.getAmount());
-        dto.setTimestamp(this.getTimestamp());
-
-        dto.setStockId(this.getStock().getId());
-        dto.setStockName(this.getStock().getName());
-
-        dto.setBuyerId(this.getBuyer().getId());
-        dto.setBuyerName(this.getBuyer().getName());
-
-        dto.setSellerId(this.getSeller().getId());
-        dto.setSellerName(this.getSeller().getName());
-
-        return dto;
-    }
 }
 

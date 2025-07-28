@@ -1,6 +1,5 @@
 package com.burse.bursebackend.entities;
 
-import com.burse.bursebackend.dtos.TraderDTO;
 import com.burse.bursebackend.entities.offer.ActiveOffer;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -20,6 +19,7 @@ public class Trader {
 
     private String name;
 
+    @Column(nullable = false)
     private BigDecimal money;
 
     @ElementCollection
@@ -60,14 +60,14 @@ public class Trader {
         }
     }
 
-    public void addAsBuyTrade(Trade trade) {
+    public void addAsBuyerTrade(Trade trade) {
         if (trade != null) {
             trade.setBuyer(this);
             asBuyer.add(trade);
         }
     }
 
-    public void addAsSellTrade(Trade trade) {
+    public void addAsSellerTrade(Trade trade) {
         if (trade != null) {
             trade.setSeller(this);
             asSeller.add(trade);
@@ -81,14 +81,5 @@ public class Trader {
         }
     }
 
-    public TraderDTO toDTO() {
-        TraderDTO dto = new TraderDTO();
-        dto.setId(this.getId());
-        dto.setName(this.getName());
-        dto.setMoney(this.getMoney());
-        dto.setHoldings(this.getHoldings());
-        return dto;
-
-    }
 }
 

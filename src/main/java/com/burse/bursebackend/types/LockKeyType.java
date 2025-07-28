@@ -1,4 +1,4 @@
-package com.burse.bursebackend.enums;
+package com.burse.bursebackend.types;
 
 public enum LockKeyType {
     OFFER,

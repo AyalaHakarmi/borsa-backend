@@ -1,24 +1,31 @@
 package com.burse.bursebackend.services;
 
 import com.burse.bursebackend.dtos.offer.BaseOfferDTO;
-import com.burse.bursebackend.dtos.offer.OfferResponseDTO;
 import com.burse.bursebackend.entities.offer.ActiveOffer;
-import com.burse.bursebackend.enums.ArchiveReason;
+import com.burse.bursebackend.entities.offer.BuyOffer;
+import com.burse.bursebackend.entities.offer.SellOffer;
+import com.burse.bursebackend.types.ArchiveReason;
 import com.burse.bursebackend.exceptions.BurseException;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 public interface IOfferService {
-    void placeOffer(BaseOfferDTO offerDTO) throws BurseException;
+    ActiveOffer processNewOffer(BaseOfferDTO offerDTO);
 
-    void tryFindPotentialTrade(ActiveOffer newOffer);
+    void reduceOfferAmount(ActiveOffer offer, int quantityToReduce);
 
     void archiveOffer(ActiveOffer offer, ArchiveReason archiveReason);
 
-    void cancelOffer(String offerId);
+    @Transactional
+    void cancelOffer(String offerId, ArchiveReason reason);
 
-    List<OfferResponseDTO> getActiveOffersForStock(String stockId);
+    List<ActiveOffer> getActiveOffersForStock(String stockId);
 
-    List<OfferResponseDTO> getActiveOffersForTrader(String traderId);
+    List<ActiveOffer> getActiveOffersForTrader(String traderId);
+
+    Pair<BuyOffer, SellOffer> findMatchingOffer(ActiveOffer newOffer);
+
 }
 

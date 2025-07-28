@@ -1,120 +1,130 @@
 package com.burse.bursebackend.services.impl;
 
-import com.burse.bursebackend.dtos.TradeDTO;
 import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.entities.Trade;
 import com.burse.bursebackend.entities.Trader;
+import com.burse.bursebackend.entities.offer.ActiveOffer;
 import com.burse.bursebackend.entities.offer.BuyOffer;
 import com.burse.bursebackend.entities.offer.SellOffer;
+import com.burse.bursebackend.locks.RedisLockService;
+import com.burse.bursebackend.types.ArchiveReason;
+import com.burse.bursebackend.types.LockKeyType;
 import com.burse.bursebackend.exceptions.BurseException;
-import com.burse.bursebackend.enums.ErrorCode;
+import com.burse.bursebackend.types.ErrorCode;
+import com.burse.bursebackend.locks.LockKeyBuilder;
 import com.burse.bursebackend.repositories.TradeRepository;
-import com.burse.bursebackend.locks.IRedisLockService;
+import com.burse.bursebackend.services.IOfferService;
 import com.burse.bursebackend.services.ITradeService;
 import com.burse.bursebackend.services.ITraderService;
-import com.burse.bursebackend.locks.LockKeyBuilder;
-import com.burse.bursebackend.enums.LockKeyType;
-import com.burse.bursebackend.services.stocks.IStockService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TradeService implements ITradeService {
 
-    private final IRedisLockService redisLockService;
     private final ITraderService traderService;
     private final TradeRepository tradeRepository;
-    private final IStockService stockService;
+    private final RedisLockService redisLockService;
+    private final IOfferService offerService;
+    private final TradeExecutionService tradeExecutionService;
+
 
     @Override
-    @Transactional
-    public void executeTrade(BuyOffer buyOffer, SellOffer sellOffer, int tradeQty) {
+    public void searchPotentialTrade(ActiveOffer newOffer) {
+        log.info("Trying to find potential trade for offer {} of trader {} on stock {}", newOffer.getId(),
+            newOffer.getTrader().getId(), newOffer.getStock().getId());
+        while (true) {
+            Pair<BuyOffer, SellOffer> pair = offerService.findMatchingOffer(newOffer);
+            BuyOffer buyOffer = pair.getLeft();
+            SellOffer sellOffer = pair.getRight();
+            if (buyOffer == null || sellOffer == null) {
+                log.info("No matching offer found for offer {}", newOffer.getId());
+                return;
+            }
 
-        BigDecimal tradePricePerUnit = getTradePrice(buyOffer, sellOffer);
-        BigDecimal tradeTotalPrice = tradePricePerUnit.multiply(BigDecimal.valueOf(tradeQty));
-        Stock stock = sellOffer.getStock();
+            String lockSellOffer = LockKeyBuilder.buildKey(LockKeyType.OFFER, sellOffer.getId());
+            String lockBuyOffer = LockKeyBuilder.buildKey(LockKeyType.OFFER, buyOffer.getId());
+            if (!lockOffers(buyOffer, sellOffer, lockBuyOffer, lockSellOffer)) continue;
 
-        String lockTraderMoney = LockKeyBuilder.buildKey(LockKeyType.MONEY, buyOffer.getTrader().getId());
-
-        if (redisLockService.failLock(lockTraderMoney)){
-            throwTryAnotherMatch();
-        }
-
-        if (!traderService.hasEnoughMoney(buyOffer.getTrader(), tradeTotalPrice)) {
-            redisLockService.unlock(lockTraderMoney);
-            throwTryAnotherMatch();
-        }
-
-        String lockTraderStock = LockKeyBuilder.buildKey(LockKeyType.STOCK, sellOffer.getTrader().getId(), stock.getId());
-
-        if (redisLockService.failLock(lockTraderStock)) {
-            redisLockService.unlock(lockTraderMoney);
-            throwTryAnotherMatch();
-        }
-
-        if (traderService.hasEnoughStock(sellOffer.getTrader(), stock, tradeQty)) {
-            redisLockService.unlock(lockTraderMoney, lockTraderStock);
-            throwTryAnotherMatch();
-        }
-
-        traderService.updateTradersMoney(buyOffer, sellOffer, tradeTotalPrice);
-        traderService.updateTradersStock(buyOffer,sellOffer, tradeQty);
-
-        redisLockService.unlock(lockTraderStock, lockTraderMoney);
-
-        recordTrade(buyOffer, sellOffer, tradePricePerUnit,tradeQty );
-
-        stockService.updateStockPrice(stock, tradePricePerUnit);
-
-    }
-
-    public List<TradeDTO> getRecentTradesForTrader(String traderId) {
-        Trader trader = traderService.findById(traderId)
-                .orElseThrow(() -> new BurseException(ErrorCode.TRADER_NOT_FOUND, "Trader not found"));
-
-        List<Trade> trades = tradeRepository.findTop8ByBuyerOrSellerOrderByTimestampDesc(trader, trader);
-
-        return trades.stream()
-                .map(Trade::toDTO)
-                .toList();
-    }
-
-    private void recordTrade(BuyOffer buyOffer, SellOffer sellOffer, BigDecimal tradePricePerUnit, int tradeQty) {
-        Trade trade = new Trade(buyOffer, sellOffer, tradePricePerUnit, tradeQty);
-        tradeRepository.save(trade);
-        buyOffer.getTrader().addAsBuyTrade(trade);
-        sellOffer.getTrader().addAsSellTrade(trade);
-        buyOffer.getStock().addTrade(trade);
-    }
-
-
-    private BigDecimal getTradePrice(BuyOffer buyOffer, SellOffer sellOffer) {
-        if (buyOffer.getCreatedAt().isBefore(sellOffer.getCreatedAt())) {
-            return buyOffer.getPrice();
-        } else {
-            return sellOffer.getPrice();
+            int numOfStocksTraded ;
+            try {
+                numOfStocksTraded = tradeExecutionService.executeTrade(buyOffer, sellOffer);
+            } catch (BurseException ex) {
+                if (ex.getErrorCode() == ErrorCode.MISSING_FUNDS){
+                    offerService.cancelOffer(ex.getMessage(), ArchiveReason.NO_FUNDS_AUTO_CANCEL);
+                    redisLockService.unlock(lockBuyOffer, lockSellOffer);
+                    if(Objects.equals(ex.getMessage(), newOffer.getId())) break;
+                    continue;
+                }
+                else if (ex.getErrorCode() == ErrorCode.TRY_ANOTHER_MATCH) {
+                    redisLockService.unlock(lockBuyOffer, lockSellOffer);
+                    continue;
+                }
+                throw ex;
+            }
+            handleRemainingOffers(buyOffer, sellOffer, numOfStocksTraded, lockBuyOffer, lockSellOffer);
+            break;
         }
     }
 
-    private void throwTryAnotherMatch() {
-        throw new BurseException(
-                ErrorCode.TRY_ANOTHER_MATCH,
-                "Try to find another potential match"
+    private void handleRemainingOffers(BuyOffer buyOffer, SellOffer sellOffer, int numOfStocksTraded, String lockBuyOffer, String lockSellOffer) {
+        int remainingBuyOfferAmount = buyOffer.getAmount() - numOfStocksTraded;
+        int remainingSellOfferAmount = sellOffer.getAmount() - numOfStocksTraded;
+        offerService.reduceOfferAmount(buyOffer, numOfStocksTraded);
+        offerService.reduceOfferAmount(sellOffer, numOfStocksTraded);
 
-        );
+        if (remainingBuyOfferAmount == 0 && remainingSellOfferAmount == 0) {
+            offerService.archiveOffer(buyOffer, ArchiveReason.COMPLETED);
+            offerService.archiveOffer(sellOffer, ArchiveReason.COMPLETED);
+            redisLockService.unlock(lockBuyOffer, lockSellOffer);
+        } else if (remainingBuyOfferAmount > 0) {
+            offerService.archiveOffer(sellOffer, ArchiveReason.COMPLETED);
+            redisLockService.unlock(lockSellOffer, lockBuyOffer);
+            searchPotentialTrade(buyOffer);
+        } else if (remainingSellOfferAmount > 0) {
+            offerService.archiveOffer(buyOffer, ArchiveReason.COMPLETED);
+            redisLockService.unlock(lockBuyOffer, lockSellOffer);
+            searchPotentialTrade(sellOffer);
+        }
+
     }
 
-    public List<TradeDTO> getRecentTradesForStock(Stock stock) {
-        List<Trade> recentTrades = tradeRepository.findTop10ByStockOrderByTimestampDesc(stock);
-        return recentTrades.stream()
-                .map(Trade::toDTO)
-                .toList();
+    private boolean lockOffers(BuyOffer buyOffer, SellOffer sellOffer, String lockBuyOffer, String lockSellOffer) {
+        if (redisLockService.failLock(lockBuyOffer)){
+            log.debug("Failed to lock buy offer {}. trying to find another match", buyOffer.getId());
+            return false;
+        }
+        if (redisLockService.failLock(lockSellOffer)) {
+            log.debug("Failed to lock sell offer {}. trying to find another match", sellOffer.getId());
+            redisLockService.unlock(lockBuyOffer);
+            return false;
+        }
+        return true;
     }
 
+    public List<Trade> get10RecentTradesForStock(Stock stock) {
+        log.debug("Fetching 10 recent trades for stockId: {}", stock.getId());
+        return tradeRepository.findTop10ByStockOrderByTimestampDesc(stock);
+    }
+
+    public List<Trade> get8RecentTradesForTrader(String traderId) {
+        Optional<Trader> traderOpt = traderService.findById(traderId);
+        if (traderOpt.isEmpty()) {
+            log.warn("Trader not found with id: {}. Cannot fetch recent trades.", traderId);
+            throw new BurseException(ErrorCode.TRADER_NOT_FOUND, "Trader not found with id: " + traderId);
+        }
+
+        log.debug("Fetching 8 recent trades for traderId: {}", traderId);
+        Trader trader = traderOpt.get();
+        return tradeRepository.findTop8ByBuyerOrSellerOrderByTimestampDesc(trader, trader);
+    }
 
 }

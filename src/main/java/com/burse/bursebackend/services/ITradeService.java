@@ -1,17 +1,16 @@
 package com.burse.bursebackend.services;
 
-import com.burse.bursebackend.dtos.TradeDTO;
 import com.burse.bursebackend.entities.Stock;
-import com.burse.bursebackend.entities.offer.BuyOffer;
-import com.burse.bursebackend.entities.offer.SellOffer;
+import com.burse.bursebackend.entities.Trade;
+import com.burse.bursebackend.entities.offer.ActiveOffer;
 
 import java.util.List;
 
 public interface ITradeService {
 
-    public void executeTrade(BuyOffer buyOffer, SellOffer sellOffer, int tradeQty);
+    List<Trade> get8RecentTradesForTrader(String traderId);
 
-    List<TradeDTO> getRecentTradesForTrader(String traderId);
+    void searchPotentialTrade(ActiveOffer newOffer);
 
-    List<TradeDTO> getRecentTradesForStock(Stock stock);
+    List<Trade> get10RecentTradesForStock(Stock stock);
 }

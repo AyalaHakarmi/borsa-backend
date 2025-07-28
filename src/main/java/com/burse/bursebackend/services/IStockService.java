@@ -1,4 +1,4 @@
-package com.burse.bursebackend.services.stocks;
+package com.burse.bursebackend.services;
 
 import com.burse.bursebackend.dtos.stock.StockSimpleDTO;
 import com.burse.bursebackend.entities.Stock;
@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface IStockService {
     void updateStockPrice(Stock stock, BigDecimal tradePricePerUnit);
 
-    List<StockSimpleDTO> getAllStocks();
-
     Optional<Stock> findById(String stockId);
+
+    List<Stock> findAll();
 }

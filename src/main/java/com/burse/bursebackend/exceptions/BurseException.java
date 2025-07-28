@@ -1,6 +1,6 @@
 package com.burse.bursebackend.exceptions;
 
-import com.burse.bursebackend.enums.ErrorCode;
+import com.burse.bursebackend.types.ErrorCode;
 import lombok.Getter;
 
 @Getter

@@ -20,9 +20,10 @@ public interface SellOfferRepository extends JpaRepository<SellOffer, String> {
       AND s.price <= :maxPrice
     ORDER BY s.price ASC, s.createdAt ASC
     """)
-    Optional<SellOffer> findBestMatchingSellOffer(
+    List<SellOffer> findBestMatchingSellOffer(
             @Param("stockId") String stockId,
-            @Param("maxPrice") BigDecimal maxPrice);
+            @Param("maxPrice") BigDecimal maxPrice,
+            Pageable pageable);
 
     boolean existsByTraderIdAndStockId(String traderId, String stockId);
 

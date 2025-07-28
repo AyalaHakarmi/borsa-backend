@@ -1,7 +1,5 @@
 package com.burse.bursebackend.entities.offer;
 
-import com.burse.bursebackend.entities.Stock;
-import com.burse.bursebackend.entities.Trader;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,8 +25,6 @@ public abstract class Offer {
 
     private LocalDateTime createdAt;
 
-    @Version
-    private int version;
 
     @PrePersist
     public void assignIdAndTimestamp() {
