@@ -33,10 +33,7 @@ public class InitialDataLoader {
     @PostConstruct
     public void loadInitialData() throws Exception {
 
-        Iterable<String> lockKeys = redissonClient.getKeys().getKeysByPattern("lock:*");
-        for (String key : lockKeys) {
-            redissonClient.getBucket(key).delete();
-        }
+        openLocks();
 
         InputStream jsonStream = getClass().getResourceAsStream("/data/BurseJson.json");
         JsonBootstrapData data = objectMapper.readValue(jsonStream, JsonBootstrapData.class);
@@ -74,4 +71,12 @@ public class InitialDataLoader {
         log.info("Initial sell offers were opened by the Burse.");
 
     }
+
+    private void openLocks() {
+        Iterable<String> lockKeys = redissonClient.getKeys().getKeysByPattern("lock:*");
+        for (String key : lockKeys) {
+            redissonClient.getBucket(key).delete();
+        }
+    }
+
 }
