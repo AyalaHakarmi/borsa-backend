@@ -47,8 +47,8 @@ The system follows a modular layered architecture with a clear separation of con
 
 - Class and file names start with **uppercase letters** (PascalCase).
 - Methods and variables use **camelCase**.
-- URL paths use **kebab-case** (e.g., `/cancel-sell-offer`).
-- Test method names use **snake_case** (e.g., `offer_cancel_when_no_funds`).
+- URL paths use **kebab-case** (e.g., `/sell-offer`).
+- Test method names use descriptive camelCase with underscores to separate context and expectation (e.g., `offerCancel_whenNoFunds`).
 
 ### Layering Principles
 
@@ -162,14 +162,6 @@ logging.level.com.burse.bursebackend=INFO
 
 Adjust levels for debugging (`DEBUG`, `TRACE`).
 
-### 7. Strategy
-
-```properties
-burse.strategy.default=SentimentBasedStrategy
-```
-
-Defined in `application.properties`. Can be changed at runtime via API.
-
 ---
 
 ## Tests
@@ -223,8 +215,8 @@ com.burse.bursebackend
 * Offers are never deleted.
 * Archived offers are stored in a **separate table** (`archived_offer`) to avoid impacting performance when querying active offers.  
 * In the future, it will be possible to associate archived offers with their corresponding stock or trader entity using collections:
-- `Stock` could hold `List<ArchivedOffer>`
-- `Trader` could hold `List<ArchivedOffer>`
+`Stock` could hold `List<ArchivedOffer>`
+`Trader` could hold `List<ArchivedOffer>`
 
 
 ### 2. Offer Inheritance

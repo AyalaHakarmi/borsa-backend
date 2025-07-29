@@ -43,36 +43,55 @@ public class TradeService implements ITradeService {
             newOffer.getTrader().getId(), newOffer.getStock().getId());
         while (true) {
             Pair<BuyOffer, SellOffer> pair = offerService.findMatchingOffer(newOffer);
+            if (matchingNotFound(pair, newOffer)) break;
             BuyOffer buyOffer = pair.getLeft();
             SellOffer sellOffer = pair.getRight();
-            if (buyOffer == null || sellOffer == null) {
-                log.info("No matching offer found for offer {}", newOffer.getId());
-                return;
-            }
 
             String lockSellOffer = LockKeyBuilder.buildKey(LockKeyType.OFFER, sellOffer.getId());
             String lockBuyOffer = LockKeyBuilder.buildKey(LockKeyType.OFFER, buyOffer.getId());
-            if (!lockOffers(buyOffer, sellOffer, lockBuyOffer, lockSellOffer)) continue;
 
-            int numOfStocksTraded ;
+            if (!lockOffers(buyOffer, sellOffer, lockBuyOffer, lockSellOffer)) continue;
+            if(!offerService.offersExist(newOffer)){
+                redisLockService.unlock(lockBuyOffer, lockSellOffer);
+                break;
+            }
+            else if(!offerService.offersExist(buyOffer,sellOffer)) {
+                redisLockService.unlock(lockBuyOffer, lockSellOffer);
+                continue;
+            }
+
+            int numOfStocksTraded;
             try {
                 numOfStocksTraded = tradeExecutionService.executeTrade(buyOffer, sellOffer);
+                handleRemainingOffers(buyOffer, sellOffer, numOfStocksTraded, lockBuyOffer, lockSellOffer);
+                break;
             } catch (BurseException ex) {
-                if (ex.getErrorCode() == ErrorCode.MISSING_FUNDS){
-                    offerService.cancelOffer(ex.getMessage(), ArchiveReason.NO_FUNDS_AUTO_CANCEL);
-                    redisLockService.unlock(lockBuyOffer, lockSellOffer);
-                    if(Objects.equals(ex.getMessage(), newOffer.getId())) break;
-                    continue;
-                }
-                else if (ex.getErrorCode() == ErrorCode.TRY_ANOTHER_MATCH) {
-                    redisLockService.unlock(lockBuyOffer, lockSellOffer);
-                    continue;
-                }
-                throw ex;
+                if(breakAfterException(ex, newOffer.getId(), lockBuyOffer, lockSellOffer)) break;
             }
-            handleRemainingOffers(buyOffer, sellOffer, numOfStocksTraded, lockBuyOffer, lockSellOffer);
-            break;
         }
+    }
+
+    private boolean matchingNotFound(Pair<BuyOffer, SellOffer> pair, ActiveOffer newOffer) {
+        if (pair == null || pair.getLeft() == null || pair.getRight() == null) {
+            log.info("No matching offers found for offer {} of trader {} on stock {}",
+                newOffer.getId(), newOffer.getTrader().getId(), newOffer.getStock().getId());
+            return true;
+        }
+        return false;
+    }
+
+
+    private boolean breakAfterException(BurseException ex, String newOfferId, String lockBuyOffer, String lockSellOffer) {
+        if (ex.getErrorCode() == ErrorCode.MISSING_FUNDS){
+            offerService.cancelOffer(ex.getMessage(), ArchiveReason.NO_FUNDS_AUTO_CANCEL);
+            redisLockService.unlock(lockBuyOffer, lockSellOffer);
+            return Objects.equals(ex.getMessage(), newOfferId);
+        }
+        else if (ex.getErrorCode() == ErrorCode.TRY_ANOTHER_MATCH) {
+            redisLockService.unlock(lockBuyOffer, lockSellOffer);
+            return false;
+        }
+        throw ex;
     }
 
     private void handleRemainingOffers(BuyOffer buyOffer, SellOffer sellOffer, int numOfStocksTraded, String lockBuyOffer, String lockSellOffer) {

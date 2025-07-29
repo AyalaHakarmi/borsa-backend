@@ -40,28 +40,20 @@ public class StockPriceService implements IStockPriceService {
     @Override
     public void updateAllPrices() {
         List<Stock> stocks = stockService.findAll();
-        for (Stock stock : stocks) {
-            int retries = 3;
-            boolean updated = false;
 
-            while (!updated && retries-- > 0) {
-                try {
-                    BigDecimal newPrice = currentStrategy.calculateNewPrice(stock);
-                    stockService.updateStockPrice(stock, newPrice);
-                    updated = true;
-                } catch (OptimisticLockException e) {
-                    log.warn("Conflict updating stock {}, retrying...", stock.getId());
-                    stock = stockService.findById(stock.getId()).orElse(null);
-                    if (stock == null) break;
-                }
-            }
-            if (!updated) {
-                assert stock != null;
-                log.error("Failed to update stock {} after retries.", stock.getId());
+        for (Stock stock : stocks) {
+            try {
+                BigDecimal newPrice = currentStrategy.calculateNewPrice(stock);
+                stockService.updateStockPrice(stock, newPrice);
+
+            } catch (Exception e) {
+                log.debug("Failed to update stock {}: {}", stock.getId(), e.getMessage(), e);
             }
         }
+
         log.info("Stock prices updated using strategy: {}", getCurrentStrategy());
     }
+
 
     @Override
     public String switchStrategy(String strategyName) {
@@ -73,7 +65,7 @@ public class StockPriceService implements IStockPriceService {
             this.currentStrategy = strategyMap.get(strategyName);
             log.info("Strategy changed to: {}", strategyName);
         } else {
-            log.error("Unknown strategy: {}", strategyName);
+            log.warn("Unknown strategy: {}", strategyName);
             throw new BurseException(ErrorCode.UNKNOWN_STRATEGY, "Unknown strategy: " + strategyName);
         }
         return "Strategy changed to: " + strategyName;

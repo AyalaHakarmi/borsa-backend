@@ -59,7 +59,7 @@ public class BurseViewService {
             throw new BurseException(ErrorCode.TRADER_NOT_FOUND, "Trader not found with id: " + traderId);
         }
         Trader trader = traderOpt.get();
-        log.info("Fetching trader details for traderId: {}", traderId);
+        log.debug("Fetching trader details for traderId: {}", traderId);
         return new TraderDTO(trader , mapToOfferResponse(traderId, offerService::getActiveOffersForTrader));
     }
 

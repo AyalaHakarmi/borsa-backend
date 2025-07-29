@@ -5,7 +5,6 @@ import com.burse.bursebackend.entities.offer.ActiveOffer;
 import com.burse.bursebackend.entities.offer.BuyOffer;
 import com.burse.bursebackend.entities.offer.SellOffer;
 import com.burse.bursebackend.types.ArchiveReason;
-import com.burse.bursebackend.exceptions.BurseException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +12,8 @@ import java.util.List;
 
 public interface IOfferService {
     ActiveOffer processNewOffer(BaseOfferDTO offerDTO);
+
+    boolean offersExist(ActiveOffer... offers);
 
     void reduceOfferAmount(ActiveOffer offer, int quantityToReduce);
 
@@ -26,6 +27,5 @@ public interface IOfferService {
     List<ActiveOffer> getActiveOffersForTrader(String traderId);
 
     Pair<BuyOffer, SellOffer> findMatchingOffer(ActiveOffer newOffer);
-
 }
 

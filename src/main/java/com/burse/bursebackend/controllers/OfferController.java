@@ -38,14 +38,14 @@ public class OfferController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/cancel-buy/{offerId}")
+    @DeleteMapping("/buy/cancel/{offerId}")
     @Operation(summary = "Cancel a buy offer", description = "Cancels a buy offer using the given ID.")
     public ResponseEntity<Void> cancelBuyOffer(@PathVariable String offerId) {
         offerService.cancelOffer(offerId, ArchiveReason.CANCELED);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/cancel-sell/{offerId}")
+    @DeleteMapping("/sell/cancel/{offerId}")
     @Operation(summary = "Cancel a sell offer", description = "Cancels a sell offer using the given ID.")
     public ResponseEntity<Void> cancelSellOffer(@PathVariable String offerId) {
         offerService.cancelOffer(offerId, ArchiveReason.CANCELED);

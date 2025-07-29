@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+import static com.burse.bursebackend.TestUtils.insertValidOffer;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -30,37 +31,46 @@ class OfferControllerTest {
 
 
     @Test
-    void addBuyOffer_whenValid_shouldReturnOk() throws Exception {
+    void addBuyOffer_shouldReturnOk() throws Exception {
+        String stockId = "2";
+        String traderId = "1";
+
         BuyOfferDTO dto = new BuyOfferDTO();
-        dto.setTraderId("1");
-        dto.setStockId("2");
+        dto.setTraderId(stockId);
+        dto.setStockId(traderId);
         dto.setPrice(new BigDecimal("340"));
         dto.setAmount(5);
 
-        mockMvc.perform(post("/api/offers/buy")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        insertValidOffer(objectMapper, mockMvc, dto);
+
     }
 
     @Test
     void addBuyOffer_withNonExistingTrader_shouldReturnBadRequest() throws Exception {
+        String stockId = "2";
+
         BuyOfferDTO dto = new BuyOfferDTO();
         dto.setTraderId("non-existing-id");
-        dto.setStockId("2");
+        dto.setStockId(stockId);
         dto.setPrice(BigDecimal.valueOf(300));
         dto.setAmount(5);
 
         mockMvc.perform(post("/api/offers/buy")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String response = result.getResponse().getContentAsString();
+                    assertTrue(response.contains("Trader not found"));
+                });
     }
 
     @Test
     void addBuyOffer_withNonExistingStock_shouldReturnBadRequest() throws Exception {
+        String traderId = "2";
+
         BuyOfferDTO dto = new BuyOfferDTO();
-        dto.setTraderId("2");
+        dto.setTraderId(traderId);
         dto.setStockId("non-existing-id");
         dto.setPrice(BigDecimal.valueOf(300));
         dto.setAmount(5);
@@ -68,25 +78,29 @@ class OfferControllerTest {
         mockMvc.perform(post("/api/offers/buy")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String response = result.getResponse().getContentAsString();
+                    assertTrue(response.contains("Stock not found"));
+                });
     }
 
     @Test
     void sellThenBuyOffer_sameTraderSameStock_shouldReturnError() throws Exception {
+        String stockId = "3";
+        String traderId = "2";
+
         SellOfferDTO sellDto = new SellOfferDTO();
-        sellDto.setTraderId("2");
-        sellDto.setStockId("3");
+        sellDto.setTraderId(traderId);
+        sellDto.setStockId(stockId);
         sellDto.setPrice(BigDecimal.valueOf(310));
         sellDto.setAmount(1);
 
-        mockMvc.perform(post("/api/offers/sell")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(sellDto)))
-                .andExpect(status().isOk());
+        insertValidOffer(objectMapper, mockMvc, sellDto);
 
         BuyOfferDTO buyDto = new BuyOfferDTO();
-        buyDto.setTraderId("2");
-        buyDto.setStockId("3");
+        buyDto.setTraderId(traderId);
+        buyDto.setStockId(stockId);
         buyDto.setPrice(BigDecimal.valueOf(320));
         buyDto.setAmount(1);
 

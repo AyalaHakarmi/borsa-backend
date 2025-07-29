@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +14,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.burse.bursebackend.TestUtils.insertValidOffer;
 import static org.aspectj.bridge.MessageUtil.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -37,6 +37,7 @@ public class ConcurrentTradeExecutionTest {
     @Test
     void shouldCompleteAllTradesWithoutRaceConditions() throws Exception {
         int threadCount = 8;
+        int amount = 1;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
@@ -48,12 +49,10 @@ public class ConcurrentTradeExecutionTest {
                     dto.setTraderId(String.valueOf(traderNum));
                     dto.setStockId(String.valueOf(traderNum));
                     dto.setPrice(BigDecimal.valueOf(1500));
-                    dto.setAmount(1);
+                    dto.setAmount(amount);
 
-                    mockMvc.perform(post("/api/offers/buy")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(dto)))
-                            .andExpect(status().isOk());
+                    insertValidOffer(objectMapper, mockMvc, dto);
+
                 } catch (Exception e) {
                     System.err.println("Thread " + traderNum + " failed: " + e.getMessage());
                 } finally {
@@ -79,25 +78,24 @@ public class ConcurrentTradeExecutionTest {
     }
 
     @Test
-    void twoTradersBuyingSameStockConcurrently_shouldBothSucceed() throws Exception {
-        int threadCount = 2;
+    void threeTradersBuyingSameStockConcurrently_shouldAllSucceed() throws Exception {
+        String stockId = "5";
+        int amount = 1;
+        int threadCount =3;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
-        for (int i = 1; i <= threadCount; i++) {
-            int traderId = i+8;
+        for (int i = 9; i < 9+threadCount; i++) {
+            int traderId = i;
             executor.submit(() -> {
                 try {
                     BuyOfferDTO dto = new BuyOfferDTO();
                     dto.setTraderId("" + (traderId));
-                    dto.setStockId("5");
+                    dto.setStockId(stockId);
                     dto.setPrice(BigDecimal.valueOf(5000));
-                    dto.setAmount(1);
+                    dto.setAmount(amount);
 
-                    mockMvc.perform(post("/api/offers/buy")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(dto)))
-                            .andExpect(status().isOk());
+                    insertValidOffer(objectMapper, mockMvc, dto);
                 } catch (Exception e) {
                     fail("Thread failed with exception: " + e.getMessage());
                 } finally {
@@ -109,14 +107,13 @@ public class ConcurrentTradeExecutionTest {
         latch.await();
         executor.shutdown();
 
-        for (int i = 1; i <= threadCount; i++) {
-            int traderId = i+8;
-            String response = mockMvc.perform(get("/api/traders/" + traderId + "/trades"))
+        for (int i = 9; i < 9+threadCount; i++) {
+            String response = mockMvc.perform(get("/api/traders/" + i + "/trades"))
                     .andExpect(status().isOk())
                     .andReturn().getResponse().getContentAsString();
 
             List<?> trades = objectMapper.readValue(response, List.class);
-            assertEquals(1, trades.size(), "Trader " + traderId + " should have 1 trade");
+            assertEquals(1, trades.size(), "Trader " + i + " should have 1 trade");
         }
     }
 

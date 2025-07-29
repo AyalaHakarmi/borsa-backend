@@ -27,7 +27,7 @@ public class TradeExecutionService implements ITradeExecutionService {
     @Transactional
     @Override
     public int executeTrade(BuyOffer buyOffer, SellOffer sellOffer) {
-        log.info("Potential trade found: BUY {} ⇄ SELL {}", buyOffer.getId(), sellOffer.getId());
+        log.debug("Potential trade found: BUY {} ⇄ SELL {}", buyOffer.getId(), sellOffer.getId());
         int numOfStocksTraded = Math.min(buyOffer.getAmount(), sellOffer.getAmount());
         BigDecimal tradePricePerUnit = getTradePrice(buyOffer, sellOffer);
         BigDecimal tradeTotalPrice = tradePricePerUnit.multiply(BigDecimal.valueOf(numOfStocksTraded));

@@ -53,7 +53,7 @@ public class OfferService implements IOfferService {
             thisType.name(), newOffer.getTrader().getId(), newOffer.getStock().getId());
 
         redisLockService.lockMeta(metaKey);
-        validateNoOppositeOfferExists(newOffer, thisTypeKey, metaKey);
+        validateTypeBeforeInsertion(newOffer, thisTypeKey, metaKey);
         activeOfferRepository.save(newOffer);
         redisLockService.lock(oppositeTypeKey);
 
@@ -63,7 +63,7 @@ public class OfferService implements IOfferService {
         return newOffer;
     }
 
-    private void validateNoOppositeOfferExists(ActiveOffer newOffer, String lockThisKey, String metaKey) {
+    private void validateTypeBeforeInsertion(ActiveOffer newOffer, String lockThisKey, String metaKey) {
         if (redisLockService.isLocked(lockThisKey)) {
             log.warn("Trader {} already has opposite offer type on stock {} – blocking new offer.",
                     newOffer.getTrader().getId(), newOffer.getStock().getId());
@@ -102,6 +102,19 @@ public class OfferService implements IOfferService {
     }
 
     @Override
+    public boolean offersExist(ActiveOffer... offers) {
+        if (offers != null) {
+            for (ActiveOffer offer : offers) {
+                if(!activeOfferRepository.existsById(offer.getId())) {
+                    log.debug("Offer {} no longer exists", offer.getId());
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
     public void reduceOfferAmount(ActiveOffer offer, int quantityToReduce) {
         int remaining = offer.getAmount()-quantityToReduce;
         log.info("Updating offer {}. Reduced amount by {}, remaining: {}",
@@ -132,14 +145,14 @@ public class OfferService implements IOfferService {
     private void unlockIfNoOtherOffersOfSameTypeExist(String traderId, String stockId, OfferType type) {
         String metaKey = LockKeyBuilder.buildKey(LockKeyType.META, traderId, stockId);
         redisLockService.lockMeta(metaKey);
-        if (!isThisTypeExists(type, traderId, stockId)) {
+        if (!isOfferOfTypeExists(type, traderId, stockId)) {
             String lockOppositeKey = LockKeyBuilder.buildKey(LockKeyType.OFFER_TYPE, traderId, stockId, type.opposite());
             redisLockService.unlock(lockOppositeKey);
         }
         redisLockService.unlock(metaKey);
     }
 
-    private boolean isThisTypeExists(OfferType type, String traderId, String stockId) {
+    private boolean isOfferOfTypeExists(OfferType type, String traderId, String stockId) {
         Optional<Trader> traderOpt = traderService.findById(traderId);
         if (traderOpt.isEmpty()) {
             log.warn("Trader {} not found while trying to release lock for offers of type {}", traderId, type);
