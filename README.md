@@ -62,9 +62,10 @@ The system follows a modular layered architecture with a clear separation of con
 Traders submit buy/sell offers for a specific stock. The system:
 
 * Verifies no conflicting offer exists for the same trader and stock.
-* Checks for matching offer based on price/time.
-* Executes a trade immediately if a match is found.
+* Executes a trade immediately if match offer is found.
 * If no match, the offer is saved for future matching.
+
+In addition, trader can cancel offer.
 
 ### 2. Trade Execution
 
@@ -91,6 +92,7 @@ A strategy can be dynamically changed via an endpoint.
 
 * **Java 21**, **Spring Boot**, **Spring Data JPA**, **PostgreSQL**
 * **Redis** with **Redisson** for locking
+* **RESTful API** – All interactions are performed over HTTP endpoints using REST conventions
 * **Lombok**, **SLF4J**, **Logback**
 * **OpenAPI/Swagger** for API docs
 * **JUnit 5**, **Spring Boot Test**, **MockMvc** for testing
