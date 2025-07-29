@@ -1,6 +1,5 @@
 package com.burse.bursebackend.services;
 
-import com.burse.bursebackend.dtos.stock.StockSimpleDTO;
 import com.burse.bursebackend.entities.Stock;
 
 import java.math.BigDecimal;

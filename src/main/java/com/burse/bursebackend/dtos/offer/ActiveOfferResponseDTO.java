@@ -1,6 +1,5 @@
 package com.burse.bursebackend.dtos.offer;
 
-
 import com.burse.bursebackend.entities.offer.ActiveOffer;
 import com.burse.bursebackend.types.OfferType;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -37,14 +37,6 @@ public class Trader {
     @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL)
     private List<Trade> asSeller = new ArrayList<>();
 
-    @Transient
-    public List<Trade> getAllTrades() {
-        List<Trade> all = new ArrayList<>();
-        all.addAll(asBuyer);
-        all.addAll(asSeller);
-        all.sort(Comparator.comparing(Trade::getTimestamp).reversed());
-        return all;
-    }
 
     @PrePersist
     public void assignIdIfMissing() {

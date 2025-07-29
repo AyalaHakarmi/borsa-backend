@@ -1,6 +1,5 @@
 package com.burse.bursebackend.entities;
 
-import com.burse.bursebackend.dtos.TradeDTO;
 import com.burse.bursebackend.entities.offer.ActiveOffer;
 import jakarta.persistence.*;
 import lombok.Getter;

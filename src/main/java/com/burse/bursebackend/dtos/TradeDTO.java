@@ -1,8 +1,6 @@
 package com.burse.bursebackend.dtos;
 
-import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.entities.Trade;
-import com.burse.bursebackend.entities.Trader;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

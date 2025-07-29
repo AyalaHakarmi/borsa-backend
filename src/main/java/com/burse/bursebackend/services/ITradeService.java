@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface ITradeService {
 
-    List<Trade> get8RecentTradesForTrader(String traderId);
-
     void searchPotentialTrade(ActiveOffer newOffer);
 
     List<Trade> get10RecentTradesForStock(Stock stock);
+
+    List<Trade> get8RecentTradesForTrader(String traderId);
 }

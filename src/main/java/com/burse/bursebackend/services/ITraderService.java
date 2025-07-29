@@ -13,7 +13,7 @@ public interface ITraderService {
 
     void verifyTraderStockAvailability(SellOffer sellOffer, int numOfStocksTraded, String lockTraderMoney, String lockTraderStock);
 
-    void verifyTraderMoneyAvailablity(BuyOffer buyOffer, BigDecimal tradeTotalPrice, String lockTraderMoney);
+    void verifyTraderMoneyAvailable(BuyOffer buyOffer, BigDecimal tradeTotalPrice, String lockTraderMoney);
 
     void updateTradersMoney(BuyOffer buyOffer, SellOffer sellOffer, BigDecimal tradeTotalPrice);
 
@@ -24,4 +24,5 @@ public interface ITraderService {
     Optional<Trader> findById(String traderId);
 
     void exchangeMoneyAndStock(BuyOffer buyOffer, SellOffer sellOffer, Stock stock, BigDecimal tradeTotalPrice, int numOfStocksTraded);
+
 }

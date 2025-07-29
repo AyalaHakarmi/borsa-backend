@@ -14,7 +14,6 @@ import com.burse.bursebackend.services.ITraderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,7 +34,7 @@ public class TraderService implements ITraderService {
             throwTryAnotherMatch();
         }
 
-        verifyTraderMoneyAvailablity(buyOffer, tradeTotalPrice, lockTraderMoney);
+        verifyTraderMoneyAvailable(buyOffer, tradeTotalPrice, lockTraderMoney);
 
         String lockTraderStock = LockKeyBuilder.buildKey(LockKeyType.STOCK, sellOffer.getTrader().getId(), stock.getId());
         if (redisLockService.failLock(lockTraderStock)) {
@@ -69,7 +68,7 @@ public class TraderService implements ITraderService {
     }
 
     @Override
-    public void verifyTraderMoneyAvailablity(BuyOffer buyOffer, BigDecimal tradeTotalPrice, String lockTraderMoney) {
+    public void verifyTraderMoneyAvailable(BuyOffer buyOffer, BigDecimal tradeTotalPrice, String lockTraderMoney) {
         BigDecimal traderMoney = buyOffer.getTrader().getMoney();
         if (traderMoney.compareTo(tradeTotalPrice) < 0) {
             log.warn("Buyer {} does not have enough money for trade (needed: {}, has: {}). His offer {} will be cancelled.",
@@ -148,5 +147,6 @@ public class TraderService implements ITraderService {
                 sellOffer.getTrader().getId(),
                 totalPrice);
     }
+
 
 }

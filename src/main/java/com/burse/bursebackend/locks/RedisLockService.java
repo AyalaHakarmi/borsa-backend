@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -35,7 +37,7 @@ public class RedisLockService {
 
     public void lockMeta(String key) {
         log.debug("Acquiring meta lock for key: {}", key);
-        redissonClient.getLock(key).lock();
+        redissonClient.getLock(key).lock(20, TimeUnit.SECONDS);
     }
 
     public void unlockMeta(String key) {

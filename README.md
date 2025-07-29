@@ -18,14 +18,12 @@ Burse is a simplified stock exchange simulation system that handles buy and sell
 ## Key Features
 
 * Accepts buy and sell offers for different stocks from multiple traders.
-* Prevents conflicting offers (both buy and sell) from the same trader on the same stock.
+* Prevents conflicting offers (both buy and sell from the same trader on the same stock).
 * Matches offers automatically based on price and submission time.
 * Executes trades atomically, ensuring consistency under concurrency.
 * Archives completed and canceled offers in a separate table.
-* Maintains the latest price of each stock.
 * Supports dynamic, switchable pricing strategies.
 * Provides a documented REST API via Swagger.
-* Initializes system with default traders, stocks, and BURSE-based offers.
 * Integration tests cover critical and edge-case flows.
 * The system is designed to ensure that no two matching offers remain in the system without being automatically processed into a trade.
 
@@ -37,10 +35,9 @@ The system follows a modular layered architecture with a clear separation of con
 
 * Each resource (Trader, Stock, Offer, Trade) has its own module: `controller`, `service`, and `repository`.
 * Services are built as interfaces with implementations to allow flexibility.
-* DTOs (suffixed with `DTO`) isolate internal entities from API exposure.
+* DTOs isolate internal entities from API exposure.
 * `locks/` manages Redis-based distributed locking.
 * `pricing/` contains pluggable strategy implementations.
-* `BurseViewService` aggregates data for complex DTOs.
 * `config/` holds system-wide configuration (e.g., Redis, Swagger).
 
 ### Code Conventions
@@ -52,9 +49,8 @@ The system follows a modular layered architecture with a clear separation of con
 
 ### Layering Principles
 
-- No service directly accesses repositories of other modules.
+- No **service** directly accesses **repository** of another module.
 - Crosses between **controller and services** were avoided, except for a single justified case.
-
 
 
 ---
@@ -66,17 +62,15 @@ The system follows a modular layered architecture with a clear separation of con
 Traders submit buy/sell offers for a specific stock. The system:
 
 * Verifies no conflicting offer exists for the same trader and stock.
-* Checks for matching counter-offers based on price/time.
+* Checks for matching offer based on price/time.
 * Executes a trade immediately if a match is found.
-* Leaves the offer open otherwise.
+* If no match, the offer is saved for future matching.
 
 ### 2. Trade Execution
 
 * Both offers are locked to prevent concurrent usage.
 * Trader funds and stock balances are locked and verified.
-* Money and shares are exchanged.
-* Trade price = price of the earlier offer.
-* Quantity = minimum of the two offers.
+* Money and stocks are exchanged.
 * Fully filled offers are archived.
 * Partially filled offer is updated and re-matched (Because it might be skipped while it was locked).
 
@@ -85,7 +79,7 @@ Traders submit buy/sell offers for a specific stock. The system:
 At startup:
 
 * Predefined traders and stocks are loaded.
-* BURSE (a virtual trader) creates default sell offers.
+* BURSE (a fictional trader) creates default sell offers.
 
 ### 4. Strategy Switching
 
@@ -125,9 +119,16 @@ In `application.properties`:
 spring.datasource.url=jdbc:postgresql://localhost:5432/burse
 spring.datasource.username=postgres
 spring.datasource.password=4167
-spring.jpa.hibernate.ddl-auto=create-drop
 ```
 Change if needed.
+
+- The application uses the setting:
+```properties
+  spring.jpa.hibernate.ddl-auto=create-drop
+```
+- This means the database schema will be created and dropped on each run.
+- Do not use this setting in production.
+
 
 ### 3. Redis Configuration
 
@@ -139,6 +140,12 @@ singleServerConfig:
 ```
 
 Change if needed to match your Redis host.
+
+```markdown
+- On application startup, all Redis keys are automatically deleted.
+  This is done inside the `BurseInitializer`.
+  Change it in production.
+```
 
 ### 4. Run the Application
 
@@ -159,7 +166,6 @@ Access at:
 logging.level.root=ERROR
 logging.level.com.burse.bursebackend=INFO
 ```
-
 Adjust levels for debugging (`DEBUG`, `TRACE`).
 
 ---
@@ -177,7 +183,9 @@ mvn test
 * Valid and invalid offer submissions
 * Trade logic, matching, and partial fills
 * Locking behavior under concurrency
-* Initial data load and BURSE offers
+* Error handling and edge cases
+* Stock price strategy switching
+* Stock price updates
 * Archiving and DTO responses
 * etc.
 ---
@@ -193,8 +201,8 @@ com.burse.bursebackend
 ├── dtos                # DTOs for API communication
 ├── exceptions          # Custom exceptions and handlers
 ├── locks               # Redis lock services
-├── pricing             # Strategy implementations
-├── types               # Enums and helper classes
+├── pricing             # Strategy for stock prices updates
+├── types               # Enums 
 ├── config              # App-wide configuration 
 
 
@@ -213,10 +221,7 @@ com.burse.bursebackend
 ### 1. Archiving Offers
 
 * Offers are never deleted.
-* Archived offers are stored in a **separate table** (`archived_offer`) to avoid impacting performance when querying active offers.  
-* In the future, it will be possible to associate archived offers with their corresponding stock or trader entity using collections:
-`Stock` could hold `List<ArchivedOffer>`
-`Trader` could hold `List<ArchivedOffer>`
+* Archived offers are stored in a **separate table** (`archived_offer`) to avoid impacting performance when querying active offers.
 
 
 ### 2. Offer Inheritance
@@ -243,7 +248,7 @@ com.burse.bursebackend
 
 * API uses DTOs only (with `DTO` suffix)
 * Internal structure is never exposed
-* Aggregated DTOs are built via `BurseViewService`
+* Aggregated DTOs to **GET** endpoints are built via `BurseViewService`
 
 ### 6. Interpretation-Based Design Choices
 
@@ -254,6 +259,9 @@ Certain behaviors in the system were implemented based on interpretation of the 
     - Canceling buy offers vs. sell offers
 - Trader names were returned to the frontend **without their IDs**.
 - Stock names were not returned in certain responses, **just their IDs**, as they were not explicitly required.
+
+
+## Thanks :)
 
 
 

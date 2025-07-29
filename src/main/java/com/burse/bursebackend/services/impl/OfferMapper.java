@@ -29,7 +29,6 @@ public class OfferMapper {
     private final IStockService stockService;
 
     public Pair<ActiveOffer, OfferType> buildOfferFromDTO(BaseOfferDTO offerDTO) {
-        validNotNullValues(offerDTO);
         Optional<Trader> traderOpt = traderService.findById(offerDTO.getTraderId());
         if (traderOpt.isEmpty()) {
             log.warn("Trader not found with id: {}. The offer was rejected.", offerDTO.getTraderId());
@@ -54,12 +53,5 @@ public class OfferMapper {
         throw new BurseException(ErrorCode.INVALID_OFFER, "Unknown offer type");
     }
 
-    private void validNotNullValues(BaseOfferDTO offerDTO) {
-        if (offerDTO.getTraderId() == null || offerDTO.getStockId() == null ||
-                offerDTO.getPrice() == null || offerDTO.getAmount() <= 0) {
-            log.warn("Invalid offer data: {}", offerDTO);
-            throw new BurseException(ErrorCode.INVALID_OFFER, "Offer data cannot be null or invalid");
-        }
-    }
 
 }

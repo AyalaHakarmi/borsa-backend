@@ -25,8 +25,5 @@ public interface SellOfferRepository extends JpaRepository<SellOffer, String> {
             @Param("maxPrice") BigDecimal maxPrice,
             Pageable pageable);
 
-    boolean existsByTraderIdAndStockId(String traderId, String stockId);
-
-
 
 }

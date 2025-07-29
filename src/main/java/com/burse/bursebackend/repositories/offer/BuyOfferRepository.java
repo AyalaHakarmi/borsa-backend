@@ -25,7 +25,5 @@ public interface BuyOfferRepository extends JpaRepository<BuyOffer, String> {
             Pageable pageable);
 
 
-    boolean existsByTraderIdAndStockId(String traderId, String stockId);
-
 
 }

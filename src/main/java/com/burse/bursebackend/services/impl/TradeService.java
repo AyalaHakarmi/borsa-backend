@@ -19,11 +19,14 @@ import com.burse.bursebackend.services.ITraderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -94,6 +97,7 @@ public class TradeService implements ITradeService {
         throw ex;
     }
 
+
     private void handleRemainingOffers(BuyOffer buyOffer, SellOffer sellOffer, int numOfStocksTraded, String lockBuyOffer, String lockSellOffer) {
         int remainingBuyOfferAmount = buyOffer.getAmount() - numOfStocksTraded;
         int remainingSellOfferAmount = sellOffer.getAmount() - numOfStocksTraded;
@@ -129,11 +133,13 @@ public class TradeService implements ITradeService {
         return true;
     }
 
+    @Override
     public List<Trade> get10RecentTradesForStock(Stock stock) {
         log.debug("Fetching 10 recent trades for stockId: {}", stock.getId());
         return tradeRepository.findTop10ByStockOrderByTimestampDesc(stock);
     }
 
+    @Override
     public List<Trade> get8RecentTradesForTrader(String traderId) {
         Optional<Trader> traderOpt = traderService.findById(traderId);
         if (traderOpt.isEmpty()) {

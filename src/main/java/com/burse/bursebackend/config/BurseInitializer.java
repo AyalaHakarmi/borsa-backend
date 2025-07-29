@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class InitialDataLoader {
+public class BurseInitializer {
 
     private static final String BURSE_TRADER_ID = "BURSE";
 
@@ -31,7 +31,7 @@ public class InitialDataLoader {
     private final RedissonClient redissonClient;
 
     @PostConstruct
-    public void loadInitialData() throws Exception {
+    public void initialData() throws Exception {
 
         openLocks();
 
@@ -44,8 +44,7 @@ public class InitialDataLoader {
         stockRepository.saveAll(stocks);
         traderRepository.saveAll(traders);
 
-        log.info("Loaded traders from JSON.");
-        log.info("Loaded stocks from JSON.");
+        log.info("Loaded stocks and traders from JSON.");
 
         Trader burse = new Trader();
         burse.setId(BURSE_TRADER_ID);

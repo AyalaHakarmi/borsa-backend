@@ -84,7 +84,6 @@ public class OfferService implements IOfferService {
                     newOffer.getPrice(),
                     PageRequest.of(0, 1)
             );
-
             SellOffer matching = matches.isEmpty() ? null : matches.get(0);
             return Pair.of((BuyOffer) newOffer, matching);
 
@@ -146,8 +145,8 @@ public class OfferService implements IOfferService {
         String metaKey = LockKeyBuilder.buildKey(LockKeyType.META, traderId, stockId);
         redisLockService.lockMeta(metaKey);
         if (!isOfferOfTypeExists(type, traderId, stockId)) {
-            String lockOppositeKey = LockKeyBuilder.buildKey(LockKeyType.OFFER_TYPE, traderId, stockId, type.opposite());
-            redisLockService.unlock(lockOppositeKey);
+            String oppositeTypeKey = LockKeyBuilder.buildKey(LockKeyType.OFFER_TYPE, traderId, stockId, type.opposite());
+            redisLockService.unlock(oppositeTypeKey);
         }
         redisLockService.unlock(metaKey);
     }

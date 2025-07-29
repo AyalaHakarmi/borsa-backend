@@ -2,12 +2,10 @@ package com.burse.bursebackend.locks;
 
 import com.burse.bursebackend.types.OfferType;
 import com.burse.bursebackend.types.LockKeyType;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 public class LockKeyBuilder {
-
-    private LockKeyBuilder() {
-        // prevent instantiation
-    }
 
     public static String buildKey(LockKeyType type, String... parts) {
         return switch (type) {

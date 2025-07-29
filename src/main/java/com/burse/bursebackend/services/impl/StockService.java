@@ -1,16 +1,20 @@
 package com.burse.bursebackend.services.impl;
 
 import com.burse.bursebackend.entities.Stock;
+import com.burse.bursebackend.entities.Trade;
 import com.burse.bursebackend.repositories.StockRepository;
 import com.burse.bursebackend.services.IStockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -35,6 +39,5 @@ public class StockService implements IStockService {
     public List<Stock> findAll() {
         return stockRepository.findAll();
     }
-
 
 }
