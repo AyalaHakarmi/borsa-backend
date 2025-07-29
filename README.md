@@ -141,11 +141,9 @@ singleServerConfig:
 
 Change if needed to match your Redis host.
 
-```markdown
 - On application startup, all Redis keys are automatically deleted.
   This is done inside the `BurseInitializer`.
   Change it in production.
-```
 
 ### 4. Run the Application
 
