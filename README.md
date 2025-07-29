@@ -20,8 +20,8 @@ Burse is a simplified stock exchange simulation system that handles buy and sell
 * Accepts buy and sell offers for different stocks from multiple traders.
 * Prevents conflicting offers (both buy and sell from the same trader on the same stock).
 * Matches offers automatically based on price and submission time.
-* Executes trades atomically, ensuring consistency under concurrency.
-* Archives completed and canceled offers in a separate table.
+* Executes trades automatically, ensuring consistency under concurrency.
+* Archives completed and canceled offers.
 * Supports dynamic, switchable pricing strategies.
 * Provides a documented REST API via Swagger.
 * Integration tests cover critical and edge-case flows.
