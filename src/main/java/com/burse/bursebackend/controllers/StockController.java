@@ -1,6 +1,6 @@
 package com.burse.bursebackend.controllers;
 
-import com.burse.bursebackend.dtos.StockDetailDTO;
+import com.burse.bursebackend.dtos.stock.StockDetailDTO;
 import com.burse.bursebackend.dtos.stock.StockSimpleDTO;
 import com.burse.bursebackend.services.impl.BurseViewService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,19 +17,19 @@ import java.util.List;
 @Tag(name = "Stocks", description = "Endpoints for retrieving stock information.")
 public class StockController {
 
-    private final BurseViewService dataAggregatorService;
+    private final BurseViewService burseViewService;
 
     @GetMapping
     @Operation(summary = "Get all stocks", description = "Returns a list of all stocks with basic information.")
     public ResponseEntity<List<StockSimpleDTO>> getAllStocks() {
-        List<StockSimpleDTO> stocks = dataAggregatorService.getAllStocks();
+        List<StockSimpleDTO> stocks = burseViewService.getAllStocks();
         return ResponseEntity.ok(stocks);
     }
 
     @GetMapping("/{stockId}")
     @Operation(summary = "Get detailed stock info", description = "Returns detailed stock info including offers and 10 latest trades.")
     public ResponseEntity<StockDetailDTO> getStockDetails(@PathVariable String stockId) {
-        StockDetailDTO stockDetailDTO = dataAggregatorService.getStockDetails(stockId);
+        StockDetailDTO stockDetailDTO = burseViewService.getStockDetails(stockId);
         return ResponseEntity.ok(stockDetailDTO);
     }
 }

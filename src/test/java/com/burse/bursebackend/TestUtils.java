@@ -1,6 +1,6 @@
 package com.burse.bursebackend;
 
-import com.burse.bursebackend.dtos.StockDetailDTO;
+import com.burse.bursebackend.dtos.stock.StockDetailDTO;
 import com.burse.bursebackend.dtos.TraderDTO;
 import com.burse.bursebackend.dtos.offer.BaseOfferDTO;
 import com.burse.bursebackend.dtos.offer.BuyOfferDTO;

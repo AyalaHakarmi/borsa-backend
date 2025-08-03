@@ -1,6 +1,6 @@
 package com.burse.bursebackend;
 
-import com.burse.bursebackend.dtos.StockDetailDTO;
+import com.burse.bursebackend.dtos.stock.StockDetailDTO;
 import com.burse.bursebackend.dtos.TradeDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.burse.bursebackend.dtos.offer.BuyOfferDTO;

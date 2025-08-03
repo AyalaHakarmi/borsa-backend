@@ -19,7 +19,7 @@ import java.util.List;
 public class TraderController {
 
     private final ITraderService traderService;
-    private final BurseViewService dataAggregatorService;
+    private final BurseViewService burseViewService;
 
     @GetMapping("/names")
     @Operation(summary = "Get all trader names", description = "Returns a list of all trader names.")
@@ -31,14 +31,14 @@ public class TraderController {
     @GetMapping("/{traderId}")
     @Operation(summary = "Get trader info with active offers", description = "Returns trader data and all his open offers.")
     public ResponseEntity<TraderDTO> getTraderDetails(@PathVariable String traderId) {
-        TraderDTO traderDetails = dataAggregatorService.getTraderDetails(traderId);
+        TraderDTO traderDetails = burseViewService.getTraderDetails(traderId);
         return ResponseEntity.ok(traderDetails);
     }
 
     @GetMapping("/{traderId}/trades")
     @Operation(summary = "Get recent trades for trader", description = "Returns up to 8 recent trades involving the trader.")
     public ResponseEntity<List<TradeDTO>> getTraderTrades(@PathVariable String traderId) {
-        List<TradeDTO> trades = dataAggregatorService.get8RecentTradesForTrader(traderId);
+        List<TradeDTO> trades = burseViewService.get8RecentTradesForTrader(traderId);
         return ResponseEntity.ok(trades);
     }
 }
