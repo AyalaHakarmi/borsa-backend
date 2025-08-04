@@ -9,12 +9,14 @@ import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.entities.Trade;
 import com.burse.bursebackend.entities.Trader;
 import com.burse.bursebackend.entities.offer.ActiveOffer;
+import com.burse.bursebackend.entities.offer.BuyOffer;
 import com.burse.bursebackend.types.ErrorCode;
 import com.burse.bursebackend.exceptions.BurseException;
 import com.burse.bursebackend.services.IOfferService;
 import com.burse.bursebackend.services.ITradeService;
 import com.burse.bursebackend.services.ITraderService;
 import com.burse.bursebackend.services.IStockService;
+import com.burse.bursebackend.types.OfferType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,16 +37,19 @@ public class BurseViewService {
 
     public StockDetailDTO getStockDetails(String stockId) {
 
-        Optional<Stock> stock = stockService.findById(stockId);
-        if (stock.isEmpty()) {
+        Optional<Stock> stockOpt = stockService.findById(stockId);
+        if (stockOpt.isEmpty()) {
             log.warn("Stock not found with id: {}. cannot provide stock details.", stockId);
             throw new BurseException(ErrorCode.STOCK_NOT_FOUND, "Stock not found with id: " + stockId);
         }
-
+        Stock stock = stockOpt.get();
         return new StockDetailDTO(
-                stock.get(),
+                stock.getId(),
+                stock.getName(),
+                stock.getCurrentPrice(),
+                stock.getAmount(),
                 mapToOfferResponse(stockId, offerService::getActiveOffersForStock),
-                get10RecentTradesForStock(stock.get()));
+                get10RecentTradesForStock(stock));
     }
 
     private List<TradeDTO> get10RecentTradesForStock(Stock stock) {
@@ -60,25 +65,61 @@ public class BurseViewService {
         }
         Trader trader = traderOpt.get();
         log.debug("Fetching trader details for traderId: {}", traderId);
-        return new TraderDTO(trader , mapToOfferResponse(traderId, offerService::getActiveOffersForTrader));
+        return new TraderDTO(
+                trader.getId() ,
+                trader.getName(),
+                trader.getMoney(),
+                trader.getHoldings(),
+                mapToOfferResponse(traderId, offerService::getActiveOffersForTrader)
+        );
     }
 
     public List<ActiveOfferResponseDTO> mapToOfferResponse(String id, Function<String, List<ActiveOffer>> fetchFunction) {
         return fetchFunction.apply(id)
                 .stream()
-                .map(ActiveOfferResponseDTO::new)
+                .map(offer -> {
+                    assert offer.getStock() != null;
+                    return new ActiveOfferResponseDTO(
+                            offer.getTrader() != null? offer.getTrader().getId() : null,
+                            offer.getStock().getId(),
+                            offer.getPrice(),
+                            offer.getAmount(),
+                            offer.getId(),
+                            offer instanceof BuyOffer? OfferType.BUY : OfferType.SELL,
+                            offer.getCreatedAt(),
+                            offer.getStock().getName()
+                    );
+                })
                 .toList();
     }
 
     private List<TradeDTO> mapToTradeDTO(List<Trade> trades) {
         return trades.stream()
-                .map(TradeDTO::new)
+                .map(trade -> new TradeDTO(
+                        trade.getId(),
+                        trade.getStock().getId(),
+                        trade.getStock().getName(),
+                        trade.getPricePerUnit(),
+                        trade.getTotalPrice(),
+                        trade.getAmount(),
+                        trade.getTimestamp(),
+
+                        trade.getBuyer().getId(),
+                        trade.getBuyer().getName(),
+
+                        trade.getSeller().getId(),
+                        trade.getSeller().getName()
+                ))
                 .toList();
     }
 
     public List<StockSimpleDTO> getAllStocks() {
         return stockService.findAll().stream()
-                .map(StockSimpleDTO::new)
+                .map(stock -> new StockSimpleDTO(
+                        stock.getId(),
+                        stock.getName(),
+                        stock.getCurrentPrice(),
+                        stock.getAmount()))
                 .toList();
     }
 

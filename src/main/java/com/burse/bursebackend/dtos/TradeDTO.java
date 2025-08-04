@@ -1,6 +1,5 @@
 package com.burse.bursebackend.dtos;
 
-import com.burse.bursebackend.entities.Trade;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -53,21 +52,20 @@ public class TradeDTO {
     private String sellerName;
 
 
+    public TradeDTO(String tradeId, String stockId, String stockName, BigDecimal pricePerUnit, BigDecimal totalPrice, int amount, LocalDateTime timestamp, String buyerId, String buyerName, String sellerId, String sellerName) {
+        this.id = tradeId;
+        this.stockId = stockId;
+        this.stockName = stockName;
+        this.pricePerUnit = pricePerUnit;
+        this.totalPrice = totalPrice;
+        this.amount = amount;
+        this.timestamp = timestamp;
 
-    public TradeDTO(Trade trade) {
-        this.id = trade.getId();
-        this.stockId = trade.getStock().getId();
-        this.stockName = trade.getStock().getName();
-        this.pricePerUnit = trade.getPricePerUnit();
-        this.totalPrice = trade.getTotalPrice();
-        this.amount = trade.getAmount();
-        this.timestamp = trade.getTimestamp();
+        this.buyerId = buyerId;
+        this.buyerName = buyerName;
 
-        this.buyerId = trade.getBuyer().getId();
-        this.buyerName = trade.getBuyer().getName();
-
-        this.sellerId = trade.getSeller().getId();
-        this.sellerName = trade.getSeller().getName();
+        this.sellerId = sellerId;
+        this.sellerName = sellerName;
     }
 }
 

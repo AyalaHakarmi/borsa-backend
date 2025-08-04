@@ -1,7 +1,6 @@
 package com.burse.bursebackend.dtos;
 
 import com.burse.bursebackend.dtos.offer.ActiveOfferResponseDTO;
-import com.burse.bursebackend.entities.Trader;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,12 +31,12 @@ public class TraderDTO {
     private List<ActiveOfferResponseDTO> activeOffers;
 
 
-    public TraderDTO(Trader trader, List<ActiveOfferResponseDTO> activeOffersForTrader) {
-        this.id = trader.getId();
-        this.name = trader.getName();
-        this.money = trader.getMoney();
-        this.holdings = trader.getHoldings();
-        this.activeOffers = activeOffersForTrader;
+    public TraderDTO(String id, String name, BigDecimal money, Map<String, Integer> holdings, List<ActiveOfferResponseDTO> activeOfferList) {
+        this.id = id;
+        this.name = name;
+        this.money = money;
+        this.holdings = holdings;
+        this.activeOffers = activeOfferList;
     }
 }
 

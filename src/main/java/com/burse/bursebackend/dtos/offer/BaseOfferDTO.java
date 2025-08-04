@@ -1,6 +1,5 @@
 package com.burse.bursebackend.dtos.offer;
 
-import com.burse.bursebackend.entities.offer.ActiveOffer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -31,11 +30,10 @@ public abstract class BaseOfferDTO {
     @Schema(description = "Number of stocks", example = "10")
     private int amount;
 
-
-    public BaseOfferDTO(ActiveOffer activeOffer) {
-        this.traderId = activeOffer.getTrader() != null ? activeOffer.getTrader().getId() : null;
-        this.stockId = activeOffer.getStock() != null ? activeOffer.getStock().getId() : null;
-        this.price = activeOffer.getPrice();
-        this.amount = activeOffer.getAmount();
+    public BaseOfferDTO(String traderId, String stockId, BigDecimal price, int amount) {
+        this.traderId = traderId;
+        this.stockId = stockId;
+        this.price = price;
+        this.amount = amount;
     }
 }
