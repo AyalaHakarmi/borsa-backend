@@ -31,10 +31,10 @@ public class Trader {
     @OneToMany(mappedBy = "trader", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ActiveOffer> activeOffers = new ArrayList<>();
 
-    @OneToMany(mappedBy = "buyer", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "buyer")
     private List<Trade> asBuyer = new ArrayList<>();
 
-    @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "seller")
     private List<Trade> asSeller = new ArrayList<>();
 
 

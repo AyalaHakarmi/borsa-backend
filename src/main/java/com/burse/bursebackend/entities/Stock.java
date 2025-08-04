@@ -27,7 +27,7 @@ public class Stock {
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ActiveOffer> activeOffers = new ArrayList<>();
 
-    @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "stock")
     private List<Trade> trades = new ArrayList<>();
 
     @PrePersist
