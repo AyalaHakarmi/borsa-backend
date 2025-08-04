@@ -258,7 +258,6 @@ Certain behaviors in the system were implemented based on interpretation of the 
     - Submitting buy offers vs. sell offers
     - Canceling buy offers vs. sell offers
 - Trader names were returned to the frontend **without their IDs**.
-- Stock names were not returned in certain responses, **just their IDs**, as they were not explicitly required.
 
 
 ## Thanks :)
