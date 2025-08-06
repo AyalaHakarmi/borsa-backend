@@ -179,7 +179,6 @@ public class OfferService implements IOfferService {
             log.warn("Failed to cancel offer {} – offer is locked, probably for processing a trade", offerId);
             throw new BurseException(ErrorCode.OFFER_LOCKED, "Offer is currently locked (probably for processing a trade). try again later.");
         }
-        redisLockService.lock(lockKey);
         try {
             Optional<ActiveOffer> offer = activeOfferRepository.findById(offerId);
             if (offer.isEmpty()) {

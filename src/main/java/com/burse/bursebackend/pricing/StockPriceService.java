@@ -4,7 +4,6 @@ import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.types.ErrorCode;
 import com.burse.bursebackend.exceptions.BurseException;
 import com.burse.bursebackend.services.IStockService;
-import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
