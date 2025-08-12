@@ -1,4 +1,4 @@
-package com.burse.bursebackend.services;
+package com.burse.bursebackend.services.interfaces;
 
 import com.burse.bursebackend.entities.Stock;
 

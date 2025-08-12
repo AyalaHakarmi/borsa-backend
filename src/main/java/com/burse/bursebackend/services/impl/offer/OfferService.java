@@ -1,15 +1,15 @@
-package com.burse.bursebackend.services.impl;
+package com.burse.bursebackend.services.impl.offer;
 
 import com.burse.bursebackend.dtos.offer.*;
 import com.burse.bursebackend.entities.offer.*;
-import com.burse.bursebackend.redis.RedisCounterService;
-import com.burse.bursebackend.redis.RedisLockService;
+import com.burse.bursebackend.redis.IRedisCounterService;
+import com.burse.bursebackend.redis.IRedisLockService;
 import com.burse.bursebackend.types.ArchiveReason;
 import com.burse.bursebackend.types.OfferType;
 import com.burse.bursebackend.exceptions.BurseException;
 import com.burse.bursebackend.types.ErrorCode;
 import com.burse.bursebackend.repositories.offer.*;
-import com.burse.bursebackend.services.IOfferService;
+import com.burse.bursebackend.services.interfaces.offer.IOfferService;
 import com.burse.bursebackend.redis.KeyBuilder;
 import com.burse.bursebackend.types.KeyType;
 
@@ -32,8 +32,8 @@ public class OfferService implements IOfferService {
     private final SellOfferRepository sellOfferRepository;
     private final BuyOfferRepository buyOfferRepository;
     private final ArchivedOfferRepository archivedOfferRepository;
-    private final RedisLockService redisLockService;
-    private final RedisCounterService redisCounterService;
+    private final IRedisLockService redisLockService;
+    private final IRedisCounterService redisCounterService;
     private final OfferMapper offerMapper;
 
     @Override

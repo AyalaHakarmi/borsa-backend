@@ -1,13 +1,13 @@
-package com.burse.bursebackend.services.impl;
+package com.burse.bursebackend.services.impl.trade;
 
 import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.entities.Trade;
 import com.burse.bursebackend.entities.offer.BuyOffer;
 import com.burse.bursebackend.entities.offer.SellOffer;
 import com.burse.bursebackend.repositories.TradeRepository;
-import com.burse.bursebackend.services.IStockService;
-import com.burse.bursebackend.services.ITradeExecutionService;
-import com.burse.bursebackend.services.ITraderService;
+import com.burse.bursebackend.services.interfaces.IStockService;
+import com.burse.bursebackend.services.interfaces.trade.ITradeExecutionService;
+import com.burse.bursebackend.services.interfaces.ITraderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

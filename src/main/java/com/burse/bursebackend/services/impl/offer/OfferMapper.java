@@ -1,4 +1,4 @@
-package com.burse.bursebackend.services.impl;
+package com.burse.bursebackend.services.impl.offer;
 
 import com.burse.bursebackend.dtos.offer.BaseOfferDTO;
 import com.burse.bursebackend.dtos.offer.BuyOfferDTO;
@@ -9,8 +9,9 @@ import com.burse.bursebackend.entities.offer.ActiveOffer;
 import com.burse.bursebackend.entities.offer.BuyOffer;
 import com.burse.bursebackend.entities.offer.SellOffer;
 import com.burse.bursebackend.exceptions.BurseException;
-import com.burse.bursebackend.services.IStockService;
-import com.burse.bursebackend.services.ITraderService;
+import com.burse.bursebackend.services.interfaces.IStockService;
+import com.burse.bursebackend.services.interfaces.ITraderService;
+import com.burse.bursebackend.services.interfaces.offer.IOfferMapper;
 import com.burse.bursebackend.types.ErrorCode;
 import com.burse.bursebackend.types.OfferType;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 @Service
-public class OfferMapper {
+public class OfferMapper implements IOfferMapper {
 
     private final ITraderService traderService;
     private final IStockService stockService;
 
+    @Override
     public Pair<ActiveOffer, OfferType> buildOfferFromDTO(BaseOfferDTO offerDTO) {
         Optional<Trader> traderOpt = traderService.findById(offerDTO.getTraderId());
         if (traderOpt.isEmpty()) {

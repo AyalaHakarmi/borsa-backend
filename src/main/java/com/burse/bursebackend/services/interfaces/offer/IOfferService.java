@@ -1,4 +1,4 @@
-package com.burse.bursebackend.services;
+package com.burse.bursebackend.services.interfaces.offer;
 
 import com.burse.bursebackend.dtos.offer.BaseOfferDTO;
 import com.burse.bursebackend.entities.offer.ActiveOffer;

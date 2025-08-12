@@ -2,7 +2,7 @@ package com.burse.bursebackend.controllers;
 
 import com.burse.bursebackend.dtos.stock.StockDetailDTO;
 import com.burse.bursebackend.dtos.stock.StockSimpleDTO;
-import com.burse.bursebackend.services.impl.BurseViewService;
+import com.burse.bursebackend.services.interfaces.IBurseViewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import java.util.List;
 @Tag(name = "Stocks", description = "Endpoints for retrieving stock information.")
 public class StockController {
 
-    private final BurseViewService burseViewService;
+    private final IBurseViewService burseViewService;
 
     @GetMapping
     @Operation(summary = "Get all stocks", description = "Returns a list of all stocks with basic information.")

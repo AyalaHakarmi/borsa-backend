@@ -1,4 +1,4 @@
-package com.burse.bursebackend.services;
+package com.burse.bursebackend.services.interfaces.trade;
 
 import com.burse.bursebackend.entities.offer.BuyOffer;
 import com.burse.bursebackend.entities.offer.SellOffer;

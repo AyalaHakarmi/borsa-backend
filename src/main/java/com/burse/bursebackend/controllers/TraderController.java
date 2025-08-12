@@ -2,8 +2,8 @@ package com.burse.bursebackend.controllers;
 
 import com.burse.bursebackend.dtos.TradeDTO;
 import com.burse.bursebackend.dtos.TraderDTO;
-import com.burse.bursebackend.services.ITraderService;
-import com.burse.bursebackend.services.impl.BurseViewService;
+import com.burse.bursebackend.services.interfaces.IBurseViewService;
+import com.burse.bursebackend.services.interfaces.ITraderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.List;
 public class TraderController {
 
     private final ITraderService traderService;
-    private final BurseViewService burseViewService;
+    private final IBurseViewService burseViewService;
 
     @GetMapping("/names")
     @Operation(summary = "Get all trader names", description = "Returns a list of all trader names.")

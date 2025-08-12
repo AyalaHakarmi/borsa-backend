@@ -4,13 +4,13 @@ import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.entities.Trader;
 import com.burse.bursebackend.entities.offer.BuyOffer;
 import com.burse.bursebackend.entities.offer.SellOffer;
-import com.burse.bursebackend.redis.RedisLockService;
+import com.burse.bursebackend.redis.IRedisLockService;
 import com.burse.bursebackend.types.ErrorCode;
 import com.burse.bursebackend.types.KeyType;
 import com.burse.bursebackend.exceptions.BurseException;
 import com.burse.bursebackend.redis.KeyBuilder;
 import com.burse.bursebackend.repositories.TraderRepository;
-import com.burse.bursebackend.services.ITraderService;
+import com.burse.bursebackend.services.interfaces.ITraderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ import java.util.Optional;
 public class TraderService implements ITraderService {
 
     private final TraderRepository traderRepository;
-    private final RedisLockService redisLockService;
+    private final IRedisLockService redisLockService;
 
     @Override
     public void exchangeMoneyAndStock(BuyOffer buyOffer, SellOffer sellOffer, Stock stock, BigDecimal tradeTotalPrice, int numOfStocksTraded) {

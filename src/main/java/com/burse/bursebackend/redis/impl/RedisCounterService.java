@@ -1,5 +1,7 @@
-package com.burse.bursebackend.redis;
+package com.burse.bursebackend.redis.impl;
 
+import com.burse.bursebackend.redis.IRedisCounterService;
+import com.burse.bursebackend.redis.KeyBuilder;
 import com.burse.bursebackend.types.KeyType;
 import com.burse.bursebackend.types.OfferType;
 import lombok.RequiredArgsConstructor;
@@ -9,12 +11,10 @@ import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class RedisCounterService {
+public class RedisCounterService implements IRedisCounterService {
 
     private final RedissonClient redisson;
 
@@ -39,6 +39,7 @@ public class RedisCounterService {
     return newVal
     """;
 
+    @Override
     public boolean tryAddOffer(String traderId, String stockId, OfferType type) {
         String key = KeyBuilder.buildKey(KeyType.OFFER_TYPE, traderId, stockId);
         String thisField  = type.field();
@@ -49,13 +50,14 @@ public class RedisCounterService {
                 LUA_INSERT,
                 RScript.ReturnType.INTEGER,
                 java.util.Collections.singletonList(key),
-                thisField,                    // ARGV[1] - "buy"/"sell"
-                otherField,                   // ARGV[2] - "sell"/"buy"
-                "1"                           // ARGV[3] - מחרוזת "1"
+                thisField,
+                otherField,
+                "1"
         );
-        return res.longValue() >= 0;     // -1 => OPPOSITE_OFFER_EXISTS
+        return res.longValue() >= 0;
     }
 
+    @Override
     public boolean removeOffer(String traderId, String stockId, OfferType type) {
         String key = KeyBuilder.buildKey(KeyType.OFFER_TYPE, traderId, stockId);
         String field = type.field();
@@ -65,8 +67,8 @@ public class RedisCounterService {
                 LUA_DELETE,
                 RScript.ReturnType.INTEGER,
                 java.util.Collections.singletonList(key),
-                field,                        // ARGV[1]
-                "1"                           // ARGV[2]
+                field,
+                "1"
         );
         boolean ok = res.longValue() >= 0;
         if (!ok) {

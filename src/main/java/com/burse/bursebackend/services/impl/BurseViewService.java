@@ -10,12 +10,13 @@ import com.burse.bursebackend.entities.Trade;
 import com.burse.bursebackend.entities.Trader;
 import com.burse.bursebackend.entities.offer.ActiveOffer;
 import com.burse.bursebackend.entities.offer.BuyOffer;
+import com.burse.bursebackend.services.interfaces.IBurseViewService;
 import com.burse.bursebackend.types.ErrorCode;
 import com.burse.bursebackend.exceptions.BurseException;
-import com.burse.bursebackend.services.IOfferService;
-import com.burse.bursebackend.services.ITradeService;
-import com.burse.bursebackend.services.ITraderService;
-import com.burse.bursebackend.services.IStockService;
+import com.burse.bursebackend.services.interfaces.offer.IOfferService;
+import com.burse.bursebackend.services.interfaces.trade.ITradeService;
+import com.burse.bursebackend.services.interfaces.ITraderService;
+import com.burse.bursebackend.services.interfaces.IStockService;
 import com.burse.bursebackend.types.OfferType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,13 +29,14 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BurseViewService {
+public class BurseViewService implements IBurseViewService {
 
     private final IOfferService offerService;
     private final ITradeService tradeService;
     private final ITraderService traderService;
     private final IStockService stockService;
 
+    @Override
     public StockDetailDTO getStockDetails(String stockId) {
 
         Optional<Stock> stockOpt = stockService.findById(stockId);
@@ -52,11 +54,13 @@ public class BurseViewService {
                 get10RecentTradesForStock(stock));
     }
 
-    private List<TradeDTO> get10RecentTradesForStock(Stock stock) {
+    @Override
+    public List<TradeDTO> get10RecentTradesForStock(Stock stock) {
         return mapToTradeDTO(tradeService.get10RecentTradesForStock(stock));
 
     }
 
+    @Override
     public TraderDTO getTraderDetails(String traderId) {
         Optional<Trader> traderOpt = traderService.findById(traderId);
         if (traderOpt.isEmpty()) {
@@ -74,6 +78,7 @@ public class BurseViewService {
         );
     }
 
+    @Override
     public List<ActiveOfferResponseDTO> mapToOfferResponse(String id, Function<String, List<ActiveOffer>> fetchFunction) {
         return fetchFunction.apply(id)
                 .stream()
@@ -93,7 +98,8 @@ public class BurseViewService {
                 .toList();
     }
 
-    private List<TradeDTO> mapToTradeDTO(List<Trade> trades) {
+    @Override
+    public List<TradeDTO> mapToTradeDTO(List<Trade> trades) {
         return trades.stream()
                 .map(trade -> new TradeDTO(
                         trade.getId(),
@@ -113,6 +119,7 @@ public class BurseViewService {
                 .toList();
     }
 
+    @Override
     public List<StockSimpleDTO> getAllStocks() {
         return stockService.findAll().stream()
                 .map(stock -> new StockSimpleDTO(
@@ -123,6 +130,7 @@ public class BurseViewService {
                 .toList();
     }
 
+    @Override
     public List<TradeDTO> get8RecentTradesForTrader(String traderId) {
         return mapToTradeDTO(tradeService.get8RecentTradesForTrader(traderId));
 

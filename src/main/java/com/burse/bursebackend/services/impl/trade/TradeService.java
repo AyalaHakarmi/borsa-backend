@@ -1,4 +1,4 @@
-package com.burse.bursebackend.services.impl;
+package com.burse.bursebackend.services.impl.trade;
 
 import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.entities.Trade;
@@ -6,16 +6,17 @@ import com.burse.bursebackend.entities.Trader;
 import com.burse.bursebackend.entities.offer.ActiveOffer;
 import com.burse.bursebackend.entities.offer.BuyOffer;
 import com.burse.bursebackend.entities.offer.SellOffer;
-import com.burse.bursebackend.redis.RedisLockService;
+import com.burse.bursebackend.redis.IRedisLockService;
+import com.burse.bursebackend.services.interfaces.trade.ITradeExecutionService;
 import com.burse.bursebackend.types.ArchiveReason;
 import com.burse.bursebackend.types.KeyType;
 import com.burse.bursebackend.exceptions.BurseException;
 import com.burse.bursebackend.types.ErrorCode;
 import com.burse.bursebackend.redis.KeyBuilder;
 import com.burse.bursebackend.repositories.TradeRepository;
-import com.burse.bursebackend.services.IOfferService;
-import com.burse.bursebackend.services.ITradeService;
-import com.burse.bursebackend.services.ITraderService;
+import com.burse.bursebackend.services.interfaces.offer.IOfferService;
+import com.burse.bursebackend.services.interfaces.trade.ITradeService;
+import com.burse.bursebackend.services.interfaces.ITraderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -32,9 +33,9 @@ public class TradeService implements ITradeService {
 
     private final ITraderService traderService;
     private final TradeRepository tradeRepository;
-    private final RedisLockService redisLockService;
+    private final IRedisLockService redisLockService;
     private final IOfferService offerService;
-    private final TradeExecutionService tradeExecutionService;
+    private final ITradeExecutionService tradeExecutionService;
 
 
     @Override
