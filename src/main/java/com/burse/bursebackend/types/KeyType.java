@@ -1,9 +1,8 @@
 package com.burse.bursebackend.types;
 
-public enum LockKeyType {
+public enum KeyType {
     OFFER,
     OFFER_TYPE,
-    META,
     MONEY,
     STOCK
 }

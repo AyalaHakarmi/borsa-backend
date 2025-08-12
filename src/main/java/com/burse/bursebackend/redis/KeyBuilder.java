@@ -1,6 +1,7 @@
-package com.burse.bursebackend.locks;
+package com.burse.bursebackend.redis;
 
 import com.burse.bursebackend.types.KeyType;
+import com.burse.bursebackend.types.RedisPrefixes;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
@@ -10,19 +11,19 @@ public class KeyBuilder {
         return switch (type) {
             case OFFER -> {
                 validate(parts, 1, "OFFER key requires: offerId");
-                yield "lock:offerId:" + parts[0];
+                yield RedisPrefixes.LOCKS +  "offerId:" + parts[0];
             }
             case MONEY -> {
                 validate(parts, 1, "MONEY key requires: traderId");
-                yield "lock:trader:" + parts[0] + ":money";
+                yield RedisPrefixes.LOCKS + "trader:" + parts[0] + ":money";
             }
             case STOCK -> {
                 validate(parts, 2, "STOCK key requires: traderId, stockId");
-                yield "lock:trader:" + parts[0] + ":stock:" + parts[1];
+                yield RedisPrefixes.LOCKS + "trader:" + parts[0] + ":stock:" + parts[1];
             }
             case OFFER_TYPE -> {
                 validate(parts, 2, "OFFER_TYPE key requires: traderId, stockId");
-                yield "ctr:offers:trader:" + parts[0] + ":stock:" + parts[1];
+                yield RedisPrefixes.OFFER_COUNTERS + "trader:" + parts[0] + ":stock:" + parts[1];
             }
         };
     }

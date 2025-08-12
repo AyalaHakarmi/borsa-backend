@@ -1,4 +1,4 @@
-package com.burse.bursebackend.locks;
+package com.burse.bursebackend.redis;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,12 +15,10 @@ public class RedisLockService {
 
     private final RedissonClient redissonClient;
 
-    private final long leaseSeconds = 20;
-
     public boolean tryAcquireLock(String key) {
         RLock lock = redissonClient.getLock(key);
         try {
-            return lock.tryLock(0, leaseSeconds, TimeUnit.SECONDS);
+            return lock.tryLock(0, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return false;
@@ -30,7 +28,10 @@ public class RedisLockService {
     public void unlock(String... keys) {
         for (String key : keys) {
             log.debug("Unlocking key: {}", key);
-            redissonClient.getLock(key).unlock();
+            RLock lock = redissonClient.getLock(key);
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-package com.burse.bursebackend.locks;
+package com.burse.bursebackend.redis;
 
 import com.burse.bursebackend.types.KeyType;
 import com.burse.bursebackend.types.OfferType;
@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
+import org.redisson.client.codec.StringCodec;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -43,26 +44,35 @@ public class RedisCounterService {
         String thisField  = type.field();
         String otherField = type.opposite().field();
 
-        Number res = redisson.getScript().eval(
-                RScript.Mode.READ_WRITE, LUA_INSERT, RScript.ReturnType.INTEGER,
-                Collections.singletonList(key), thisField, otherField, "1"
+        Number res = redisson.getScript(StringCodec.INSTANCE).eval(
+                RScript.Mode.READ_WRITE,
+                LUA_INSERT,
+                RScript.ReturnType.INTEGER,
+                java.util.Collections.singletonList(key),
+                thisField,                    // ARGV[1] - "buy"/"sell"
+                otherField,                   // ARGV[2] - "sell"/"buy"
+                "1"                           // ARGV[3] - מחרוזת "1"
         );
-        return res.longValue() >= 0;
+        return res.longValue() >= 0;     // -1 => OPPOSITE_OFFER_EXISTS
     }
 
-    /**
-     * מסיר הצעה אחת; מחזיר false אם לא היה מה להסיר. מנקה מפתח כשיורדים ל–0.
-     */
-    public void removeOffer(String traderId, String stockId, OfferType type) {
+    public boolean removeOffer(String traderId, String stockId, OfferType type) {
         String key = KeyBuilder.buildKey(KeyType.OFFER_TYPE, traderId, stockId);
         String field = type.field();
 
-        Number res = redisson.getScript().eval(
-                RScript.Mode.READ_WRITE, LUA_DELETE, RScript.ReturnType.INTEGER,
-                Collections.singletonList(key), field, "1"
+        Number res = redisson.getScript(StringCodec.INSTANCE).eval(
+                RScript.Mode.READ_WRITE,
+                LUA_DELETE,
+                RScript.ReturnType.INTEGER,
+                java.util.Collections.singletonList(key),
+                field,                        // ARGV[1]
+                "1"                           // ARGV[2]
         );
-        if( res.longValue() < 0){
-            log.error("Failed to remove offer for traderId: {}, stockId: {}, type: {}. No offer found or already removed.", traderId, stockId, type);
+        boolean ok = res.longValue() >= 0;
+        if (!ok) {
+            log.error("Failed to remove offer for traderId={}, stockId={}, type={}. No offer found or already removed.",
+                    traderId, stockId, type);
         }
+        return ok;
     }
 }
