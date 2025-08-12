@@ -29,7 +29,7 @@ public class BurseInitializer {
     private final StockRepository stockRepository;
     private final TraderRepository traderRepository;
     private final SellOfferRepository sellOfferRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final RedissonClient redisson;
 
     @PostConstruct
