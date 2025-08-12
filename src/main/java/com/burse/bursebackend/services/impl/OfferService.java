@@ -1,18 +1,17 @@
 package com.burse.bursebackend.services.impl;
 
 import com.burse.bursebackend.dtos.offer.*;
-import com.burse.bursebackend.entities.Trader;
 import com.burse.bursebackend.entities.offer.*;
-import com.burse.bursebackend.locks.RedisLockService;
+import com.burse.bursebackend.redis.RedisCounterService;
+import com.burse.bursebackend.redis.RedisLockService;
 import com.burse.bursebackend.types.ArchiveReason;
 import com.burse.bursebackend.types.OfferType;
 import com.burse.bursebackend.exceptions.BurseException;
 import com.burse.bursebackend.types.ErrorCode;
 import com.burse.bursebackend.repositories.offer.*;
 import com.burse.bursebackend.services.IOfferService;
-import com.burse.bursebackend.locks.LockKeyBuilder;
-import com.burse.bursebackend.types.LockKeyType;
-import com.burse.bursebackend.services.ITraderService;
+import com.burse.bursebackend.redis.KeyBuilder;
+import com.burse.bursebackend.types.KeyType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +33,7 @@ public class OfferService implements IOfferService {
     private final BuyOfferRepository buyOfferRepository;
     private final ArchivedOfferRepository archivedOfferRepository;
     private final RedisLockService redisLockService;
-    private final ITraderService traderService;
+    private final RedisCounterService redisCounterService;
     private final OfferMapper offerMapper;
 
     @Override
@@ -45,29 +44,24 @@ public class OfferService implements IOfferService {
         String traderId = newOffer.getTrader().getId();
         String stockId = newOffer.getStock().getId();
 
-        String oppositeTypeKey = LockKeyBuilder.buildKey(LockKeyType.OFFER_TYPE, traderId, stockId, thisType.opposite());
-        String thisTypeKey = LockKeyBuilder.buildKey(LockKeyType.OFFER_TYPE, traderId, stockId, thisType);
-        String metaKey = LockKeyBuilder.buildKey(LockKeyType.META, traderId, stockId);
-
         log.info("Received {} offer for trader {} on stock {} ",
             thisType.name(), newOffer.getTrader().getId(), newOffer.getStock().getId());
 
-        redisLockService.lockMeta(metaKey);
-        validateTypeBeforeInsertion(newOffer, thisTypeKey, metaKey);
-        activeOfferRepository.save(newOffer);
-        redisLockService.lock(oppositeTypeKey);
-
+        validateTypeBeforeInsertion(traderId, stockId, thisType);
+        try{
+            activeOfferRepository.save(newOffer);
+        }catch (Exception e){
+            redisCounterService.removeOffer(traderId, stockId, thisType);
+        }
         newOffer.getTrader().addOffer(newOffer);
         newOffer.getStock().addOffer(newOffer);
-        redisLockService.unlockMeta(metaKey);
         return newOffer;
     }
 
-    private void validateTypeBeforeInsertion(ActiveOffer newOffer, String lockThisKey, String metaKey) {
-        if (redisLockService.isLocked(lockThisKey)) {
+    private void validateTypeBeforeInsertion(String traderId, String stockId, OfferType thisType) {
+        if (!redisCounterService.tryAddOffer(traderId, stockId, thisType)){
             log.warn("Trader {} already has opposite offer type on stock {} – blocking new offer.",
-                    newOffer.getTrader().getId(), newOffer.getStock().getId());
-            redisLockService.unlockMeta(metaKey);
+                    traderId, stockId);
             throw new BurseException(
                     ErrorCode.INVALID_OFFER,
                     "You already have an offer of the opposite type for this stock."
@@ -138,44 +132,14 @@ public class OfferService implements IOfferService {
         offer.getStock().removeOffer(offer);
         activeOfferRepository.deleteById(offer.getId());
         activeOfferRepository.flush();
-        unlockIfNoOtherOffersOfSameTypeExist(traderId, stockId, type);
-    }
-
-    private void unlockIfNoOtherOffersOfSameTypeExist(String traderId, String stockId, OfferType type) {
-        String metaKey = LockKeyBuilder.buildKey(LockKeyType.META, traderId, stockId);
-        redisLockService.lockMeta(metaKey);
-        if (!isOfferOfTypeExists(type, traderId, stockId)) {
-            String oppositeTypeKey = LockKeyBuilder.buildKey(LockKeyType.OFFER_TYPE, traderId, stockId, type.opposite());
-            redisLockService.unlock(oppositeTypeKey);
-        }
-        redisLockService.unlock(metaKey);
-    }
-
-    private boolean isOfferOfTypeExists(OfferType type, String traderId, String stockId) {
-        Optional<Trader> traderOpt = traderService.findById(traderId);
-        if (traderOpt.isEmpty()) {
-            log.warn("Trader {} not found while trying to release lock for offers of type {}", traderId, type);
-            throw new BurseException(ErrorCode.TRADER_NOT_FOUND, "Trader not found while trying to release lock for offers of type " + type);
-        }
-        Trader trader = traderOpt.get();
-        switch (type) {
-            case BUY -> {
-                return trader.getActiveOffers().stream()
-                        .anyMatch(o -> o.getStock().getId().equals(stockId) && o instanceof BuyOffer);
-            }
-            case SELL -> {
-                return trader.getActiveOffers().stream()
-                        .anyMatch(o -> o.getStock().getId().equals(stockId) && o instanceof SellOffer);
-            }
-        };
-        throw new BurseException(ErrorCode.UNKNOWN, "Unknown offer type");
+        redisCounterService.removeOffer(traderId, stockId, type);
     }
 
     @Transactional
     @Override
     public void cancelOffer(String offerId, ArchiveReason reason) {
-        String lockKey = LockKeyBuilder.buildKey(LockKeyType.OFFER, offerId);
-        if (reason != ArchiveReason.NO_FUNDS_AUTO_CANCEL && redisLockService.failLock(lockKey)) {
+        String lockKey = KeyBuilder.buildKey(KeyType.OFFER, offerId);
+        if (reason != ArchiveReason.NO_FUNDS_AUTO_CANCEL && !redisLockService.tryAcquireLock(lockKey)) {
             log.warn("Failed to cancel offer {} – offer is locked, probably for processing a trade", offerId);
             throw new BurseException(ErrorCode.OFFER_LOCKED, "Offer is currently locked (probably for processing a trade). try again later.");
         }
@@ -191,6 +155,7 @@ public class OfferService implements IOfferService {
         }
     }
 
+    @Override
     public List<ActiveOffer> getActiveOffersForStock(String stockId) {
         return activeOfferRepository.findByStockId(stockId);
     }

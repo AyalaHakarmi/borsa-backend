@@ -7,4 +7,8 @@ public enum OfferType {
     public OfferType opposite() {
         return this == BUY ? SELL : BUY;
     }
+
+    public String field()
+    { return this == BUY ? "buy" : "sell"; }
+
 }

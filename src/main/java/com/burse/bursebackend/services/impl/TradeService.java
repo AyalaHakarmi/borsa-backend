@@ -6,12 +6,12 @@ import com.burse.bursebackend.entities.Trader;
 import com.burse.bursebackend.entities.offer.ActiveOffer;
 import com.burse.bursebackend.entities.offer.BuyOffer;
 import com.burse.bursebackend.entities.offer.SellOffer;
-import com.burse.bursebackend.locks.RedisLockService;
+import com.burse.bursebackend.redis.RedisLockService;
 import com.burse.bursebackend.types.ArchiveReason;
-import com.burse.bursebackend.types.LockKeyType;
+import com.burse.bursebackend.types.KeyType;
 import com.burse.bursebackend.exceptions.BurseException;
 import com.burse.bursebackend.types.ErrorCode;
-import com.burse.bursebackend.locks.LockKeyBuilder;
+import com.burse.bursebackend.redis.KeyBuilder;
 import com.burse.bursebackend.repositories.TradeRepository;
 import com.burse.bursebackend.services.IOfferService;
 import com.burse.bursebackend.services.ITradeService;
@@ -19,14 +19,11 @@ import com.burse.bursebackend.services.ITraderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,8 +47,8 @@ public class TradeService implements ITradeService {
             BuyOffer buyOffer = pair.getLeft();
             SellOffer sellOffer = pair.getRight();
 
-            String lockSellOffer = LockKeyBuilder.buildKey(LockKeyType.OFFER, sellOffer.getId());
-            String lockBuyOffer = LockKeyBuilder.buildKey(LockKeyType.OFFER, buyOffer.getId());
+            String lockSellOffer = KeyBuilder.buildKey(KeyType.OFFER, sellOffer.getId());
+            String lockBuyOffer = KeyBuilder.buildKey(KeyType.OFFER, buyOffer.getId());
 
             if (!lockOffers(buyOffer, sellOffer, lockBuyOffer, lockSellOffer)) continue;
             if(!offerService.offersExist(newOffer)){
@@ -121,11 +118,11 @@ public class TradeService implements ITradeService {
     }
 
     private boolean lockOffers(BuyOffer buyOffer, SellOffer sellOffer, String lockBuyOffer, String lockSellOffer) {
-        if (redisLockService.failLock(lockBuyOffer)){
+        if (!redisLockService.tryAcquireLock(lockBuyOffer)){
             log.debug("Failed to lock buy offer {}. trying to find another match", buyOffer.getId());
             return false;
         }
-        if (redisLockService.failLock(lockSellOffer)) {
+        if (!redisLockService.tryAcquireLock(lockSellOffer)) {
             log.debug("Failed to lock sell offer {}. trying to find another match", sellOffer.getId());
             redisLockService.unlock(lockBuyOffer);
             return false;

@@ -4,11 +4,11 @@ import com.burse.bursebackend.entities.Stock;
 import com.burse.bursebackend.entities.Trader;
 import com.burse.bursebackend.entities.offer.BuyOffer;
 import com.burse.bursebackend.entities.offer.SellOffer;
-import com.burse.bursebackend.locks.RedisLockService;
+import com.burse.bursebackend.redis.RedisLockService;
 import com.burse.bursebackend.types.ErrorCode;
-import com.burse.bursebackend.types.LockKeyType;
+import com.burse.bursebackend.types.KeyType;
 import com.burse.bursebackend.exceptions.BurseException;
-import com.burse.bursebackend.locks.LockKeyBuilder;
+import com.burse.bursebackend.redis.KeyBuilder;
 import com.burse.bursebackend.repositories.TraderRepository;
 import com.burse.bursebackend.services.ITraderService;
 import lombok.RequiredArgsConstructor;
@@ -29,15 +29,15 @@ public class TraderService implements ITraderService {
 
     @Override
     public void exchangeMoneyAndStock(BuyOffer buyOffer, SellOffer sellOffer, Stock stock, BigDecimal tradeTotalPrice, int numOfStocksTraded) {
-        String lockTraderMoney = LockKeyBuilder.buildKey(LockKeyType.MONEY, buyOffer.getTrader().getId());
-        if (redisLockService.failLock(lockTraderMoney)) {
+        String lockTraderMoney = KeyBuilder.buildKey(KeyType.MONEY, buyOffer.getTrader().getId());
+        if (!redisLockService.tryAcquireLock(lockTraderMoney)) {
             throwTryAnotherMatch();
         }
 
         verifyTraderMoneyAvailable(buyOffer, tradeTotalPrice, lockTraderMoney);
 
-        String lockTraderStock = LockKeyBuilder.buildKey(LockKeyType.STOCK, sellOffer.getTrader().getId(), stock.getId());
-        if (redisLockService.failLock(lockTraderStock)) {
+        String lockTraderStock = KeyBuilder.buildKey(KeyType.STOCK, sellOffer.getTrader().getId(), stock.getId());
+        if (!redisLockService.tryAcquireLock(lockTraderStock)) {
             redisLockService.unlock(lockTraderMoney);
             throwTryAnotherMatch();
         }

@@ -6,10 +6,12 @@ import com.burse.bursebackend.entities.offer.SellOffer;
 import com.burse.bursebackend.repositories.StockRepository;
 import com.burse.bursebackend.repositories.TraderRepository;
 import com.burse.bursebackend.repositories.offer.SellOfferRepository;
+import com.burse.bursebackend.types.RedisPrefixes;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RKeys;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
@@ -28,12 +30,12 @@ public class BurseInitializer {
     private final TraderRepository traderRepository;
     private final SellOfferRepository sellOfferRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final RedissonClient redissonClient;
+    private final RedissonClient redisson;
 
     @PostConstruct
     public void initialData() throws Exception {
 
-        openLocks();
+        cleanRedis();
 
         InputStream jsonStream = getClass().getResourceAsStream("/data/BurseJson.json");
         JsonBootstrapData data = objectMapper.readValue(jsonStream, JsonBootstrapData.class);
@@ -71,11 +73,14 @@ public class BurseInitializer {
 
     }
 
-    private void openLocks() {
-        Iterable<String> lockKeys = redissonClient.getKeys().getKeysByPattern("lock:*");
-        for (String key : lockKeys) {
-            redissonClient.getBucket(key).delete();
-        }
+    private void cleanRedis() {
+        RKeys keys = redisson.getKeys();
+        long deleted = 0;
+        deleted += keys.deleteByPattern(RedisPrefixes.OFFER_COUNTERS + "*");
+        deleted += keys.deleteByPattern(RedisPrefixes.LOCKS + "*");
+
+
+        log.info("Redis pattern cleanup on startup: deleted {} keys", deleted);
     }
 
 }
