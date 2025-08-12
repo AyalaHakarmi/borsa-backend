@@ -36,7 +36,7 @@ The system follows a modular layered architecture with a clear separation of con
 * Each resource (Trader, Stock, Offer, Trade) has its own module: `controller`, `service`, and `repository`.
 * Services are built as interfaces with implementations to allow flexibility.
 * DTOs isolate internal entities from API exposure.
-* `locks/` manages Redis-based distributed locking.
+* `redis/` manages Redis-based distributed locking and counters.
 * `pricing/` contains pluggable strategy implementations.
 * `config/` holds system-wide configuration (e.g., Redis, Swagger).
 
@@ -200,7 +200,7 @@ com.burse.bursebackend
 ├── entities            # Domain model (Trader, Stock, Offer, etc.)
 ├── dtos                # DTOs for API communication
 ├── exceptions          # Custom exceptions and handlers
-├── locks               # Redis lock services
+├── redis               # Redis locks and counters services
 ├── pricing             # Strategy for stock prices updates
 ├── types               # Enums 
 ├── config              # App-wide configuration 
